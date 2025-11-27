@@ -37,8 +37,10 @@ Here is what this tool does:
 	- The app will be available at `http://localhost:5173`
 
 ## **How the code works:**
-for Frontend: simple, React with TypeScript and Tailwind CSS for a responsive UI.
+For Frontend: simple, React with TypeScript and Tailwind CSS for a responsive UI.
 
-for Backend: uses Google Gemini API directly from the client (securely via env vars) to process video data and generate summaries, then uses jsPDF to render the PDF client-side.
+For Backend: uses Google Gemini API directly from the client (securely via env vars) to process video data and generate summaries, then uses jsPDF to render the PDF client-side.
 
-should work with necessary dependencies installed!
+You can easily create an API KEY via Google AI Studio.
+
+Should work with necessary dependencies installed!
