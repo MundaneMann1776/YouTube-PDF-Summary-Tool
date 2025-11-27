@@ -1,64 +1,46 @@
-<div align="center">
-  <h1 align="center">Video to PDF Summarizer 🎥 -> 📄</h1>
-  <p align="center">
-    Transform YouTube videos into detailed, professional PDF summaries using the power of Google Gemini 2.5 Flash Lite.
-  </p>
-  <p align="center">
-    ![Video to PDF UI](YOUR_SCREENSHOT_HERE.png)
-  </p>
-  <p align="center">
-    > **Setup Instruction:** Please take a screenshot of the running application and save it as `screenshot.png` in this directory. Then update the link above to `![Video to PDF UI](screenshot.png)`.
-  </p>
-</div>
+# **Video**_**to_PDF**
 
-## 🚀 Features
+Video to PDF summarizer project
 
-- **AI-Powered Summarization**: Leverages the advanced capabilities of the Gemini model to generate accurate and insightful summaries.
-- **Video to PDF**: Automatically formats and exports summaries into clean, professional PDF documents.
-- **Batch Processing**: Queue multiple videos for analysis and process them sequentially.
-- **Customizable Detail**: Choose between short, medium, or comprehensive summary lengths.
-- **Smart Validation**: Automatically checks for valid, public YouTube URLs before processing.
-- **Dark/Light Mode**: A responsive and accessible UI with theme support.
+Transform YouTube videos into detailed, professional PDF summaries using the power of Google Gemini 2.5 Flash Lite.
 
-## 🛠️ Tech Stack
+Here is what this tool does:
 
-- **Frontend**: React, TypeScript, Vite
-- **Styling**: TailwindCSS (via CDN), Vanilla CSS
-- **AI**: Google Gemini API
-- **PDF Generation**: jsPDF
+1. AI Summarization : uses Gemini 2.5 Flash Lite to analyze video content
 
-## 🏁 Getting Started
+2. PDF Generation : creates professional APA-style PDF documents
 
-### Prerequisites
+3. Smart Search : finds transcripts or synthesizes summaries from web data
 
-- Node.js (v18 or higher)
-- A Google Gemini API Key
+## **Building Requirements:**
 
-### Installation
+1. [Node.js](https://nodejs.org/) (v18 or newer)
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/MundaneMann1776/Youtube-Video-Summarizer-Tool.git
-   cd Youtube-Video-Summarizer-Tool
-   ```
+2. [NPM](https://www.npmjs.com/)
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+3. Google Gemini API Key
 
-3. **Configure Environment**
-   Create a `.env.local` file in the root directory and add your API key:
-   ```env
-   GEMINI_API_KEY=your_actual_api_key_here
-   ```
+## **Build Instructions:**
 
-4. **Run the Application**
-   ```bash
-   npm run dev
-   ```
-   Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+1. Clone the repository:
+	-  `git clone https://github.com/MundaneMann1776/YouTube-PDF-Summary-Tool.git`
+2. CD into the newly cloned directory
+	- `cd ./YouTube-PDF-Summary-Tool`
+3. Install dependencies
+	- `npm install`
+4. Configure Environment
+	- Create a `.env.local` file
+	- Add your API key: `VITE_GEMINI_API_KEY=your_key_here`
+5. Run the development server
+	- `npm run dev`
+6. Open the app
+	- The app will be available at `http://localhost:5173`
 
-## 📄 License
+## **How the code works:**
+for Frontend: simple, React with TypeScript and Tailwind CSS for a responsive UI.
 
-This project is open source and available under the [MIT License](LICENSE).
+for Backend: uses Google Gemini API directly from the client (securely via env vars) to process video data and generate summaries, then uses jsPDF to render the PDF client-side.
+
+should work with necessary dependencies installed!
+
+LMK if you would like an in-depth explanation of how the code works aswell :)
