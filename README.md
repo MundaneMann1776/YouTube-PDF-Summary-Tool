@@ -1,8 +1,8 @@
 # **Video**_**to_PDF**
 
-Video to PDF summarizer project
+Video to PDF summarizer project, literally the first project I've done. Used AI a lot though.
 
-Transform YouTube videos into detailed, professional PDF summaries using the power of Google Gemini 2.5 Flash Lite.
+Transform YouTube videos into detailed, professional PDF summaries using the power of Google Gemini.
 
 Here is what this tool does:
 
@@ -42,5 +42,3 @@ for Frontend: simple, React with TypeScript and Tailwind CSS for a responsive UI
 for Backend: uses Google Gemini API directly from the client (securely via env vars) to process video data and generate summaries, then uses jsPDF to render the PDF client-side.
 
 should work with necessary dependencies installed!
-
-LMK if you would like an in-depth explanation of how the code works aswell :)
