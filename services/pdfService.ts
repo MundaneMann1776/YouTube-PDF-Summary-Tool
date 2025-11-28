@@ -1,12 +1,38 @@
 
 import { jsPDF } from "jspdf";
 
-export const generatePdf = (title: string, summary: string) => {
+export const generatePdf = async (title: string, summary: string) => {
   const doc = new jsPDF({
     orientation: 'p',
     unit: 'pt',
     format: 'a4'
   });
+
+  // Load Fonts
+  const loadFont = async (path: string): Promise<string> => {
+    const response = await fetch(path);
+    const buffer = await response.arrayBuffer();
+    let binary = '';
+    const bytes = new Uint8Array(buffer);
+    const len = bytes.byteLength;
+    for (let i = 0; i < len; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    return window.btoa(binary);
+  };
+
+  try {
+    const fontRegular = await loadFont('./fonts/Roboto-Regular.ttf');
+    const fontBold = await loadFont('./fonts/Roboto-Bold.ttf');
+
+    doc.addFileToVFS('Roboto-Regular.ttf', fontRegular);
+    doc.addFileToVFS('Roboto-Bold.ttf', fontBold);
+
+    doc.addFont('Roboto-Regular.ttf', 'Roboto', 'normal');
+    doc.addFont('Roboto-Bold.ttf', 'Roboto', 'bold');
+  } catch (e) {
+    console.error("Failed to load fonts, falling back to default:", e);
+  }
 
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
@@ -19,8 +45,8 @@ export const generatePdf = (title: string, summary: string) => {
 
   // --- APA-Style Configuration ---
   const FONT_FAMILY = {
-    heading: "times",
-    body: "times",
+    heading: "Roboto",
+    body: "Roboto",
   };
   const FONT_SIZES = {
     title: 18,

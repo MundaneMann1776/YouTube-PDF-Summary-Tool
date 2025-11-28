@@ -15,14 +15,12 @@ const getLengthInstruction = (length: SummaryLength): string => {
     }
 };
 
-export const analyzeVideo = async (videoUrl: string, videoTitle: string, summaryLength: SummaryLength): Promise<string> => {
-    const API_KEY = process.env.API_KEY;
-
-    if (!API_KEY) {
-        throw new Error("API_KEY environment variable not set. Please create a .env.local file with your GEMINI_API_KEY.");
+export const analyzeVideo = async (videoUrl: string, videoTitle: string, summaryLength: SummaryLength, apiKey: string): Promise<string> => {
+    if (!apiKey) {
+        throw new Error("API Key is missing. Please provide it in the settings.");
     }
 
-    const ai = new GoogleGenAI({ apiKey: API_KEY });
+    const ai = new GoogleGenAI({ apiKey });
     const lengthInstruction = getLengthInstruction(summaryLength);
 
     const prompt = `
@@ -52,13 +50,15 @@ export const analyzeVideo = async (videoUrl: string, videoTitle: string, summary
   `;
 
     try {
+        console.log("Sending prompt to Gemini...");
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash-lite',
+            model: 'gemini-2.5-flash',
             contents: [{ parts: [{ text: prompt }] }],
             config: {
                 tools: [{ googleSearch: {} }],
             },
         });
+        console.log("Gemini response received:", response);
 
         const responseText = response.text;
 

@@ -1,8 +1,8 @@
 # **Video**_**to_PDF**
 
-Video to PDF summarizer project, literally the first project I've done. Used AI a lot though.
+Video to PDF summarizer project (Desktop App v0.4)
 
-Transform YouTube videos into detailed, professional PDF summaries using the power of Google Gemini.
+Transform YouTube videos into detailed, professional PDF summaries using the power of Google Gemini 2.5 Flash Lite. Now available as a standalone desktop application for macOS and Windows.
 
 Here is what this tool does:
 
@@ -18,7 +18,7 @@ Here is what this tool does:
 
 2. [NPM](https://www.npmjs.com/)
 
-3. Google Gemini API Key
+3. Google Gemini API Key (entered in the app settings)
 
 ## **Build Instructions:**
 
@@ -28,19 +28,16 @@ Here is what this tool does:
 	- `cd ./YouTube-PDF-Summary-Tool`
 3. Install dependencies
 	- `npm install`
-4. Configure Environment
-	- Create a `.env.local` file
-	- Add your API key: `VITE_GEMINI_API_KEY=your_key_here`
-5. Run the development server
-	- `npm run dev`
-6. Open the app
-	- The app will be available at `http://localhost:5173`
+4. Run the desktop app (Development)
+	- `npm run electron:dev`
+5. Build for Production
+    - `npm run electron:build` (Creates an installer in `dist/`)
 
 ## **How the code works:**
-For Frontend: simple, React with TypeScript and Tailwind CSS for a responsive UI.
+For Frontend: React with TypeScript and Tailwind CSS for a responsive UI.
 
-For Backend: uses Google Gemini API directly from the client (securely via env vars) to process video data and generate summaries, then uses jsPDF to render the PDF client-side.
+For Desktop Wrapper: Uses **Electron** to run the web app as a native desktop application.
 
-You can easily create an API KEY via Google AI Studio.
+For Backend: Uses Google Gemini API directly from the client. **Privacy Focused:** Your API key is stored locally on your machine and never sent to any third-party server.
 
-Should work with necessary dependencies installed!
+I've used Google's new Antigravity extensively for this project, and I must say even though this is my first time ever building a desktop app, it was so much fun. Please be patient with me, and let me know if you have any questions or suggestions.

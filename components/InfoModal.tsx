@@ -1,5 +1,5 @@
 import React from 'react';
-import { XMarkIcon } from './IconComponents';
+import { XMarkIcon, VideoIcon, CheckCircleIcon } from './IconComponents';
 
 interface InfoModalProps {
   isOpen: boolean;
@@ -8,79 +8,71 @@ interface InfoModalProps {
 }
 
 const InfoModal: React.FC<InfoModalProps> = ({ isOpen, onClose, theme }) => {
-  if (!isOpen) {
-    return null;
-  }
+  if (!isOpen) return null;
+
+  const steps = [
+    { title: "Paste URL", desc: "Input any public YouTube link." },
+    { title: "AI Analysis", desc: "Gemini AI watches and analyzes the content." },
+    { title: "Get Summary", desc: "Receive a detailed summary in seconds." },
+    { title: "Export PDF", desc: "Download for offline reading." }
+  ];
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm animate-fade-in-fast"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in-fast p-4"
       onClick={onClose}
-      aria-modal="true"
-      role="dialog"
     >
       <div
-        className={`relative w-full max-w-2xl max-h-[90vh] p-6 sm:p-8 m-4 rounded-xl shadow-2xl border overflow-y-auto ${theme === 'dark'
-            ? 'bg-gray-800 border-gray-700 text-gray-200'
-            : 'bg-white border-gray-200 text-gray-800'
+        className={`relative w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden transform transition-all ${theme === 'dark' ? 'bg-gray-900 border border-gray-800' : 'bg-white'
           }`}
-        onClick={(e) => e.stopPropagation()} // Prevent closing modal when clicking inside
+        onClick={(e) => e.stopPropagation()}
       >
-        <button
-          onClick={onClose}
-          className={`absolute top-4 right-4 p-2 rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 ${theme === 'dark'
-              ? 'text-gray-400 hover:bg-gray-700 focus:ring-offset-gray-800'
-              : 'text-gray-500 hover:bg-gray-100 focus:ring-offset-white'
-            }`}
-          aria-label="Close modal"
-        >
-          <XMarkIcon className="w-6 h-6" />
-        </button>
+        {/* Header */}
+        <div className={`p-6 text-center border-b ${theme === 'dark' ? 'border-gray-800' : 'border-gray-100'}`}>
+          <div className="mx-auto w-12 h-12 bg-red-500/10 rounded-full flex items-center justify-center mb-4">
+            <VideoIcon className="w-6 h-6 text-red-500" />
+          </div>
+          <h2 className={`text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+            Video to PDF
+          </h2>
+          <p className={`mt-1 text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+            AI-Powered Video Summarizer
+          </p>
+        </div>
 
-        <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-red-500">
-          About This App
-        </h2>
+        {/* Content */}
+        <div className="p-6 space-y-6">
+          <div className="grid grid-cols-2 gap-4">
+            {steps.map((step, idx) => (
+              <div key={idx} className={`p-3 rounded-xl ${theme === 'dark' ? 'bg-gray-800/50' : 'bg-gray-50'}`}>
+                <div className="text-xs font-bold text-red-500 mb-1">0{idx + 1}</div>
+                <div className={`font-semibold text-sm mb-1 ${theme === 'dark' ? 'text-gray-200' : 'text-gray-900'}`}>
+                  {step.title}
+                </div>
+                <div className={`text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                  {step.desc}
+                </div>
+              </div>
+            ))}
+          </div>
 
-        <div className="space-y-8">
-          <section>
-            <h3 className={`text-xl font-semibold mb-3 border-b pb-2 ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>How It Works</h3>
-            <ol className={`list-decimal list-inside space-y-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-              <li>
-                <span className="font-semibold">Input & Validation:</span> You paste one or more public YouTube video URLs. The app first validates these links using a public oEmbed service to ensure they are valid and to retrieve the video titles.
-              </li>
-              <li>
-                <span className="font-semibold">AI Analysis:</span> The validated video information is sent to Google's **Gemini 2.5 Flash Lite** model, optimized for speed and efficiency.
-              </li>
-              <li>
-                <span className="font-semibold">Information Gathering:</span> The AI intelligently searches for the video's transcript. If a transcript isn't available, it synthesizes a summary from reputable reviews, articles, and descriptions found online.
-              </li>
-              <li>
-                <span className="font-semibold">Summarization:</span> The AI synthesizes the gathered information into a coherent summary, tailored to the 'short', 'medium', or 'comprehensive' length you selected.
-              </li>
-              <li>
-                <span className="font-semibold">PDF Generation:</span> You can download the final, formatted summary as a professional-looking PDF document for offline use.
-              </li>
-            </ol>
-          </section>
+          <div className={`text-xs text-center ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>
+            <p>Powered by Google Gemini 2.5 Flash Lite</p>
+            <p className="mt-1">Version 0.4 • Free & Open Source</p>
+          </div>
+        </div>
 
-          <section>
-            <h3 className={`text-xl font-semibold mb-3 border-b pb-2 ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>Limitations</h3>
-            <ul className={`list-disc list-inside space-y-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-              <li>The app cannot analyze private, unlisted, age-restricted, or members-only videos.</li>
-              <li>Summary quality is highly dependent on the public availability of information. New, obscure, or non-English videos may yield limited or no results.</li>
-              <li>The AI is powerful but not perfect. It may occasionally make mistakes or miss nuances from the video.</li>
-            </ul>
-          </section>
-
-          <section>
-            <h3 className={`text-xl font-semibold mb-3 border-b pb-2 ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>Technology Stack</h3>
-            <ul className={`list-disc list-inside space-y-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-              <li><span className="font-semibold">AI Model:</span> Google Gemini 2.5 Flash Lite</li>
-              <li><span className="font-semibold">Frontend:</span> React, TypeScript, Tailwind CSS</li>
-              <li><span className="font-semibold">PDF Generation:</span> jsPDF</li>
-              <li><span className="font-semibold">URL Validation:</span> noembed.com (oEmbed provider)</li>
-            </ul>
-          </section>
+        {/* Close Button */}
+        <div className={`p-4 border-t ${theme === 'dark' ? 'border-gray-800 bg-gray-800/30' : 'border-gray-100 bg-gray-50'}`}>
+          <button
+            onClick={onClose}
+            className={`w-full py-2.5 rounded-xl font-medium transition-colors ${theme === 'dark'
+              ? 'bg-white text-black hover:bg-gray-200'
+              : 'bg-black text-white hover:bg-gray-800'
+              }`}
+          >
+            Got it
+          </button>
         </div>
       </div>
     </div>
