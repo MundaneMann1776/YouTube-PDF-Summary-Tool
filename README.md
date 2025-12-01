@@ -1,12 +1,12 @@
 # **Video**_**to_PDF**
 
-Video to PDF summarizer project (Desktop App v0.4)
+Video to PDF summarizer project (Desktop App v0.5)
 
-Transform YouTube videos into detailed, professional PDF summaries using the power of Google Gemini 2.5 Flash Lite. Now available as a standalone desktop application for macOS and Windows.
+Transform YouTube videos into detailed, professional PDF summaries using the power of Google Gemini. Now available as a standalone desktop application for macOS and Windows with multi-language support.
 
 Here is what this tool does:
 
-1. AI Summarization : uses Gemini 2.5 Flash Lite to analyze video content
+1. AI Summarization : uses Google Gemini to analyze video content in 5 languages (EN, TR, FR, DE, ES)
 
 2. PDF Generation : creates professional APA-style PDF documents
 
