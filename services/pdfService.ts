@@ -41,7 +41,7 @@ export const generatePdf = async (title: string, summary: string) => {
 
   const SPACING = {
     paragraph: 0,
-    indent: 36,
+    indent: 36, // 0.5 inch indent
   };
 
   let currentY = margin;
@@ -67,7 +67,10 @@ export const generatePdf = async (title: string, summary: string) => {
 
   // --- Title Page ---
   addPageNumber(1);
-  currentY += 100;
+
+  // APA Title Page: Title is centered, bold, in upper half of page.
+  // We'll place it roughly 1/3 down.
+  currentY += 150;
 
   doc.setFont(currentFont, "bold");
   doc.setFontSize(FONT_SIZES.title);
@@ -81,15 +84,20 @@ export const generatePdf = async (title: string, summary: string) => {
     currentY += lineHeight;
   });
 
+  // Extra space between title and "Author" (or in this case, "AI Generated Summary")
   currentY += lineHeight;
 
   doc.setFont(currentFont, "normal");
+  doc.setFontSize(FONT_SIZES.body); // Ensure body size
   doc.text("AI Generated Summary", pageWidth / 2, currentY, { align: 'center' });
+  currentY += lineHeight;
+  doc.text("YouTube Video Summarizer", pageWidth / 2, currentY, { align: 'center' });
 
   doc.addPage();
   currentY = margin;
   addPageNumber(2);
 
+  // APA: Title is repeated on the first line of the text page, centered and bold.
   doc.setFont(currentFont, "bold");
   doc.setFontSize(FONT_SIZES.title);
   doc.text(title, pageWidth / 2, currentY, { align: 'center' });
@@ -162,23 +170,60 @@ export const generatePdf = async (title: string, summary: string) => {
       });
 
     } else {
+      // Standard Paragraph
       doc.setFont(currentFont, "normal");
       doc.setFontSize(FONT_SIZES.body);
       doc.setTextColor(COLORS.text[0], COLORS.text[1], COLORS.text[2]);
 
-      const splitPara = doc.splitTextToSize(line, usableWidth);
-      const blockHeight = splitPara.length * lineSpace;
+      // APA Paragraph Indentation: First line indented 0.5in
+      // We need to manually handle the first line indent.
+      // 1. Calculate width for first line (usableWidth - indent)
+      // 2. Split text. The first part fits in the indented line.
+      // 3. The rest fits in full width lines.
 
-      checkAndAddPage(blockHeight);
+      // Simplified approach for jsPDF:
+      // We can't easily mix widths in `splitTextToSize`.
+      // Instead, we'll just indent the first line's X position.
+      // But if the first line wraps, `splitTextToSize` assumes consistent width.
 
-      splitPara.forEach((paraLine: string, index: number) => {
-        let xOffset = margin;
-        if (index === 0) {
-          xOffset += SPACING.indent;
+      // Better approach:
+      // 1. Get all words.
+      // 2. Build lines manually.
+
+      const words = line.split(' ');
+      let currentLine = '';
+      let isFirstLine = true;
+
+      words.forEach((word, index) => {
+        const space = currentLine ? ' ' : '';
+        const testLine = currentLine + space + word;
+        const testWidth = doc.getStringUnitWidth(testLine) * fontSize; // Approximate width in points? No, need to multiply by font size / scale factor.
+        // jsPDF unit is 'pt'. getStringUnitWidth returns width in 'em' units (1/1000 of font size usually).
+        // Actual width = unitWidth * fontSize.
+
+        const availableWidth = isFirstLine ? (usableWidth - SPACING.indent) : usableWidth;
+
+        if (testWidth > availableWidth && index > 0) {
+          // Line is full, print it
+          const xPos = isFirstLine ? (margin + SPACING.indent) : margin;
+          checkAndAddPage(lineSpace);
+          doc.text(currentLine, xPos, currentY);
+          currentY += lineSpace;
+
+          currentLine = word;
+          isFirstLine = false;
+        } else {
+          currentLine = testLine;
         }
-        doc.text(paraLine, xOffset, currentY);
-        currentY += lineSpace;
       });
+
+      // Print last line
+      if (currentLine) {
+        const xPos = isFirstLine ? (margin + SPACING.indent) : margin;
+        checkAndAddPage(lineSpace);
+        doc.text(currentLine, xPos, currentY);
+        currentY += lineSpace;
+      }
     }
   });
 
