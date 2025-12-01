@@ -34,14 +34,18 @@ export const generatePdf = async (title: string, summary: string) => {
   };
 
   try {
+    console.log("Starting font loading...");
     const fontRegular = await loadFont('Roboto-Regular.ttf');
     const fontBold = await loadFont('Roboto-Bold.ttf');
 
+    console.log("Fonts loaded. Adding to VFS...");
     doc.addFileToVFS('Roboto-Regular.ttf', fontRegular);
     doc.addFileToVFS('Roboto-Bold.ttf', fontBold);
 
+    console.log("Fonts added to VFS. Registering fonts...");
     doc.addFont('Roboto-Regular.ttf', 'Roboto', 'normal');
     doc.addFont('Roboto-Bold.ttf', 'Roboto', 'bold');
+    console.log("Fonts registered successfully.");
   } catch (e) {
     console.error("Critical Font Error - Falling back to default fonts:", e);
     // Do not alert, just proceed with default fonts
@@ -264,5 +268,15 @@ export const generatePdf = async (title: string, summary: string) => {
     }
   });
 
+}
+  });
+
+console.log("PDF content generated. Attempting to save...");
+try {
   doc.save(fileName);
+  console.log("PDF saved successfully.");
+} catch (err) {
+  console.error("Error saving PDF:", err);
+  alert("Failed to save PDF. Please check the console for details.");
+}
 };
