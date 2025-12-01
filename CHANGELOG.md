@@ -1,6 +1,27 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.5.0] - 2025-12-01
+
+### 🌍 Internationalization (i18n)
+- **Multi-Language Support**: Added full support for **English, Turkish, French, German, and Spanish**.
+- **Dynamic UI**: All interface elements now instantly switch to the selected language.
+- **Localized Reports**: AI-generated summaries are now created in the selected language.
+
+### 📄 Professional Reports
+- **APA Style**: PDF reports now follow strict APA formatting (Double spacing, 1-inch margins, Roboto font).
+- **Improved Layout**: Added Title Page, Page Numbers, and clean heading hierarchy.
+
+### 💅 UI/UX Modernization
+- **Glassmorphic Dock**: Replaced standard buttons with a sleek, floating glassmorphic dock.
+- **Animations**: Added smooth transitions for theme switching and interactions.
+- **Refined Inputs**: Modernized input fields and switches for a premium feel.
+
+### 🔧 Improvements
+- **Model Switching**: Added ability to select different Gemini models in Settings.
+- **Branding**: Updated footer to "Powered by Google Gemini" and bumped version to v0.5.
+- **Git Helper**: Added `push_changes.sh` script to simplify GitHub contributions.
+
 ## [0.4.0] - 2025-11-28
 
 ### 🚀 New Desktop Experience
