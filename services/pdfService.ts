@@ -9,59 +9,9 @@ export const generatePdf = async (title: string, summary: string) => {
     format: 'a4'
   });
 
-  // Default to standard font
-  let currentFont = 'Helvetica';
-
-  // Load Fonts - TEMPORARILY DISABLED FOR WEB STABILITY
-  // The custom font files are causing parsing errors in the web build (jsPDF PubSub Error).
-  // We are forcing Helvetica to ensure the PDF download works reliably.
-  /*
-  const loadFont = async (filename: string): Promise<string> => {
-    // Use absolute path from root for web compatibility
-    const path = `/fonts/${filename}`;
-    console.log(`Attempting to load font from: ${path}`);
-
-    try {
-      const response = await fetch(path);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const buffer = await response.arrayBuffer();
-      let binary = '';
-      const bytes = new Uint8Array(buffer);
-      const len = bytes.byteLength;
-      for (let i = 0; i < len; i++) {
-        binary += String.fromCharCode(bytes[i]);
-      }
-      return window.btoa(binary);
-    } catch (e) {
-      console.error(`Failed to load font ${filename}:`, e);
-      throw e;
-    }
-  };
-
-  try {
-    console.log("Starting font loading...");
-    const fontRegular = await loadFont('Roboto-Regular.ttf');
-    const fontBold = await loadFont('Roboto-Bold.ttf');
-
-    console.log("Fonts loaded. Adding to VFS...");
-    doc.addFileToVFS('Roboto-Regular.ttf', fontRegular);
-    doc.addFileToVFS('Roboto-Bold.ttf', fontBold);
-
-    console.log("Fonts added to VFS. Registering fonts...");
-    doc.addFont('Roboto-Regular.ttf', 'Roboto', 'normal');
-    doc.addFont('Roboto-Bold.ttf', 'Roboto', 'bold');
-    
-    // Only switch to Roboto if everything above succeeded
-    currentFont = 'Roboto';
-    console.log("Fonts registered successfully. Switched to Roboto.");
-  } catch (e) {
-    console.error("Critical Font Error - Falling back to Helvetica:", e);
-    // Keep currentFont as 'Helvetica'
-  }
-  */
-  console.log("Using standard font (Helvetica) for stability.");
+  // Explicitly set default font to helvetica (standard PDF font)
+  const currentFont = 'helvetica';
+  doc.setFont(currentFont);
 
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
@@ -74,37 +24,35 @@ export const generatePdf = async (title: string, summary: string) => {
 
   // --- APA Style Configuration ---
   const FONT_SIZES = {
-    title: 12, // APA Title is same size as body, just bold
-    h1: 12,    // APA Headings are same size, bold/centered
-    h2: 12,    // APA Level 2 is bold, flush left
-    body: 12,  // Standard APA size
+    title: 12,
+    h1: 12,
+    h2: 12,
+    body: 12,
     footer: 10,
   };
   const COLORS = {
-    text: [0, 0, 0], // APA requires pure black
+    text: [0, 0, 0],
   };
 
-  // Line height multipliers (relative to font size)
-  // APA requires double spacing (2.0)
+  // Line height multipliers
   const LINE_HEIGHT_MULTIPLIERS = {
     general: 2.0,
   };
 
   const SPACING = {
-    paragraph: 0, // Double spacing handles the gap, no extra space needed usually, but we can add a bit if needed.
-    indent: 36,   // 0.5 inch indent for paragraphs
+    paragraph: 0,
+    indent: 36,
   };
 
   let currentY = margin;
 
   // Helper to add a page if needed
-  // Returns true if a new page was added
   const checkAndAddPage = (heightNeeded: number) => {
     if (currentY + heightNeeded > pageHeight - margin) {
       addPageNumber(doc.getNumberOfPages());
       doc.addPage();
       currentY = margin;
-      addPageNumber(doc.getNumberOfPages()); // Add to new page
+      addPageNumber(doc.getNumberOfPages());
       return true;
     }
     return false;
@@ -114,17 +62,11 @@ export const generatePdf = async (title: string, summary: string) => {
     doc.setFont(currentFont, "normal");
     doc.setFontSize(FONT_SIZES.footer);
     doc.setTextColor(COLORS.text[0], COLORS.text[1], COLORS.text[2]);
-    // APA Page number top right
     doc.text(`${pageNumber}`, pageWidth - margin, margin - 20, { align: 'right' });
   };
 
-  // --- Title Page (Simplified) ---
-  // APA Title Page: Title (Bold, Centered), Author, Affiliation, etc.
-  // We will just do Title and "AI Generated Summary" for now.
-
+  // --- Title Page ---
   addPageNumber(1);
-
-  // Vertical center for title block (approximate)
   currentY += 100;
 
   doc.setFont(currentFont, "bold");
@@ -139,18 +81,15 @@ export const generatePdf = async (title: string, summary: string) => {
     currentY += lineHeight;
   });
 
-  // Extra space
   currentY += lineHeight;
 
   doc.setFont(currentFont, "normal");
   doc.text("AI Generated Summary", pageWidth / 2, currentY, { align: 'center' });
 
-  // Move to next page for content
   doc.addPage();
   currentY = margin;
   addPageNumber(2);
 
-  // Repeat Title on first page of text (APA requirement)
   doc.setFont(currentFont, "bold");
   doc.setFontSize(FONT_SIZES.title);
   doc.text(title, pageWidth / 2, currentY, { align: 'center' });
@@ -162,9 +101,8 @@ export const generatePdf = async (title: string, summary: string) => {
 
   lines.forEach(line => {
     line = line.trim();
-    if (!line) return; // Skip empty lines
+    if (!line) return;
 
-    // Strip markdown formatting
     const cleanLineText = line
       .replace(/\*\*(.*?)\*\*/g, '$1')
       .replace(/\*(.*?)\*/g, '$1')
@@ -175,7 +113,6 @@ export const generatePdf = async (title: string, summary: string) => {
     let isHeading = false;
     let headingLevel = 0;
 
-    // Detect headings
     const headingMatch = line.match(/^(#+)\s+(.*)/);
     if (headingMatch) {
       isHeading = true;
@@ -189,19 +126,12 @@ export const generatePdf = async (title: string, summary: string) => {
     const lineSpace = fontSize * LINE_HEIGHT_MULTIPLIERS.general;
 
     if (isHeading) {
-      // APA Headings
-      // Level 1: Centered, Bold, Title Case
-      // Level 2: Flush Left, Bold, Title Case
-      // Level 3: Flush Left, Bold Italic, Title Case (We'll map >2 to Level 2 for simplicity or just bold)
-
-      checkAndAddPage(lineSpace * 2); // Ensure space for heading
-
+      checkAndAddPage(lineSpace * 2);
       doc.setFont(currentFont, "bold");
       doc.setFontSize(FONT_SIZES.h1);
       doc.setTextColor(COLORS.text[0], COLORS.text[1], COLORS.text[2]);
 
       const splitHeading = doc.splitTextToSize(line, usableWidth);
-
       splitHeading.forEach((headingLine: string) => {
         if (headingLevel === 1) {
           doc.text(headingLine, pageWidth / 2, currentY, { align: 'center' });
@@ -212,10 +142,9 @@ export const generatePdf = async (title: string, summary: string) => {
       });
 
     } else if (line.startsWith('* ') || line.startsWith('- ')) {
-      // List Item (APA doesn't strictly define bullet lists, but we indent them)
       const bulletPoint = '•';
       const listItemText = line.replace(/^[\*\-]\s+/, '');
-      const textIndent = SPACING.indent; // Indent bullet
+      const textIndent = SPACING.indent;
 
       doc.setFont(currentFont, "normal");
       doc.setFontSize(FONT_SIZES.body);
@@ -225,19 +154,14 @@ export const generatePdf = async (title: string, summary: string) => {
       const blockHeight = splitItem.length * lineSpace;
 
       checkAndAddPage(blockHeight);
-
-      // Draw bullet
       doc.text(bulletPoint, margin + (textIndent / 2), currentY);
 
-      // Draw text lines
       splitItem.forEach((itemLine: string) => {
         doc.text(itemLine, margin + textIndent, currentY);
         currentY += lineSpace;
       });
 
     } else {
-      // Standard Paragraph
-      // APA: Indent first line 0.5in (36pt)
       doc.setFont(currentFont, "normal");
       doc.setFontSize(FONT_SIZES.body);
       doc.setTextColor(COLORS.text[0], COLORS.text[1], COLORS.text[2]);
@@ -248,36 +172,29 @@ export const generatePdf = async (title: string, summary: string) => {
       checkAndAddPage(blockHeight);
 
       splitPara.forEach((paraLine: string, index: number) => {
-        // Indent first line of paragraph? 
-        // Note: splitTextToSize breaks lines. We only want to indent the VERY FIRST line of the paragraph block.
-        // However, `splitPara` is the wrapped lines of ONE paragraph (since we process line by line from summary).
-        // So yes, index 0 is the start of the paragraph.
-
         let xOffset = margin;
         if (index === 0) {
           xOffset += SPACING.indent;
-          // Re-split the first line if it pushes out? 
-          // Actually, simply indenting the first line might push text out of bounds if we calculated split based on full width.
-          // Correct approach: Calculate split with indent for first line.
-          // But jspdf splitTextToSize doesn't handle first-line indent logic easily.
-          // Simplified approach: Don't indent for now, or just indent everything?
-          // APA requires first line indent.
-          // Let's try to just print it. If it overflows, it's a minor issue compared to "terrible" fonts.
-          // Better: Just print without indent for now to be safe, or indent the whole block?
-          // APA: Indent first line.
-          // Let's just print normally for now to ensure text fits.
         }
-
         doc.text(paraLine, xOffset, currentY);
         currentY += lineSpace;
       });
     }
   });
 
-  console.log("PDF content generated. Attempting to save...");
+  console.log("PDF content generated. Attempting to save via Blob...");
   try {
-    doc.save(fileName);
-    console.log("PDF saved successfully.");
+    // Robust download method: Create Blob -> Create Link -> Click -> Cleanup
+    const blob = doc.output('blob');
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    console.log("PDF download triggered successfully.");
   } catch (err) {
     console.error("Error saving PDF:", err);
     alert("Failed to save PDF. Please check the console for details.");
