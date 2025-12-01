@@ -9,6 +9,9 @@ export const generatePdf = async (title: string, summary: string) => {
     format: 'a4'
   });
 
+  // Default to standard font
+  let currentFont = 'Helvetica';
+
   // Load Fonts
   const loadFont = async (filename: string): Promise<string> => {
     // Use absolute path from root for web compatibility
@@ -46,10 +49,13 @@ export const generatePdf = async (title: string, summary: string) => {
     console.log("Fonts added to VFS. Registering fonts...");
     doc.addFont('Roboto-Regular.ttf', 'Roboto', 'normal');
     doc.addFont('Roboto-Bold.ttf', 'Roboto', 'bold');
-    console.log("Fonts registered successfully.");
+
+    // Only switch to Roboto if everything above succeeded
+    currentFont = 'Roboto';
+    console.log("Fonts registered successfully. Switched to Roboto.");
   } catch (e) {
-    console.error("Critical Font Error - Falling back to default fonts:", e);
-    // Do not alert, just proceed with default fonts
+    console.error("Critical Font Error - Falling back to Helvetica:", e);
+    // Keep currentFont as 'Helvetica'
   }
 
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -62,12 +68,6 @@ export const generatePdf = async (title: string, summary: string) => {
   const fileName = `${safeTitle}.pdf`;
 
   // --- APA Style Configuration ---
-  // APA 7 allows sans-serif fonts like Calibri 11, Arial 11. 
-  // We use Roboto (similar to Arial) at 11pt or 12pt.
-  const FONT_FAMILY = {
-    heading: "Roboto",
-    body: "Roboto",
-  };
   const FONT_SIZES = {
     title: 12, // APA Title is same size as body, just bold
     h1: 12,    // APA Headings are same size, bold/centered
@@ -106,7 +106,7 @@ export const generatePdf = async (title: string, summary: string) => {
   };
 
   const addPageNumber = (pageNumber: number) => {
-    doc.setFont(FONT_FAMILY.body, "normal");
+    doc.setFont(currentFont, "normal");
     doc.setFontSize(FONT_SIZES.footer);
     doc.setTextColor(COLORS.text[0], COLORS.text[1], COLORS.text[2]);
     // APA Page number top right
@@ -122,7 +122,7 @@ export const generatePdf = async (title: string, summary: string) => {
   // Vertical center for title block (approximate)
   currentY += 100;
 
-  doc.setFont(FONT_FAMILY.heading, "bold");
+  doc.setFont(currentFont, "bold");
   doc.setFontSize(FONT_SIZES.title);
   doc.setTextColor(COLORS.text[0], COLORS.text[1], COLORS.text[2]);
 
@@ -137,7 +137,7 @@ export const generatePdf = async (title: string, summary: string) => {
   // Extra space
   currentY += lineHeight;
 
-  doc.setFont(FONT_FAMILY.body, "normal");
+  doc.setFont(currentFont, "normal");
   doc.text("AI Generated Summary", pageWidth / 2, currentY, { align: 'center' });
 
   // Move to next page for content
@@ -146,7 +146,7 @@ export const generatePdf = async (title: string, summary: string) => {
   addPageNumber(2);
 
   // Repeat Title on first page of text (APA requirement)
-  doc.setFont(FONT_FAMILY.heading, "bold");
+  doc.setFont(currentFont, "bold");
   doc.setFontSize(FONT_SIZES.title);
   doc.text(title, pageWidth / 2, currentY, { align: 'center' });
   currentY += lineHeight;
@@ -191,7 +191,7 @@ export const generatePdf = async (title: string, summary: string) => {
 
       checkAndAddPage(lineSpace * 2); // Ensure space for heading
 
-      doc.setFont(FONT_FAMILY.heading, "bold");
+      doc.setFont(currentFont, "bold");
       doc.setFontSize(FONT_SIZES.h1);
       doc.setTextColor(COLORS.text[0], COLORS.text[1], COLORS.text[2]);
 
@@ -212,7 +212,7 @@ export const generatePdf = async (title: string, summary: string) => {
       const listItemText = line.replace(/^[\*\-]\s+/, '');
       const textIndent = SPACING.indent; // Indent bullet
 
-      doc.setFont(FONT_FAMILY.body, "normal");
+      doc.setFont(currentFont, "normal");
       doc.setFontSize(FONT_SIZES.body);
       doc.setTextColor(COLORS.text[0], COLORS.text[1], COLORS.text[2]);
 
@@ -233,7 +233,7 @@ export const generatePdf = async (title: string, summary: string) => {
     } else {
       // Standard Paragraph
       // APA: Indent first line 0.5in (36pt)
-      doc.setFont(FONT_FAMILY.body, "normal");
+      doc.setFont(currentFont, "normal");
       doc.setFontSize(FONT_SIZES.body);
       doc.setTextColor(COLORS.text[0], COLORS.text[1], COLORS.text[2]);
 
