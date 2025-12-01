@@ -94,6 +94,9 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose, onSave, them
                             className={`w-full p-3 rounded-lg border focus:ring-2 focus:ring-red-500 outline-none transition-all ${theme === 'dark' ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-500' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'}`}
                         />
                         {error && <p className="mt-1 text-sm text-red-500 flex items-center gap-1"><ExclamationCircleIcon className="w-4 h-4" /> {error}</p>}
+                        <p className={`mt-2 text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+                            Your API Key is stored locally on your device and is never sent to our servers.
+                        </p>
                     </div>
 
                     <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
