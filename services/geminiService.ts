@@ -1,5 +1,14 @@
 import { GoogleGenAI } from "@google/genai";
 import { SummaryLength } from "../types";
+import { Language } from "../i18n/translations";
+
+const LANGUAGE_NAMES: Record<Language, string> = {
+    en: "English",
+    tr: "Turkish",
+    fr: "French",
+    de: "German",
+    es: "Spanish"
+};
 
 
 const getLengthInstruction = (length: SummaryLength): string => {
@@ -15,7 +24,7 @@ const getLengthInstruction = (length: SummaryLength): string => {
     }
 };
 
-export const analyzeVideo = async (videoUrl: string, videoTitle: string, summaryLength: SummaryLength, apiKey: string): Promise<string> => {
+export const analyzeVideo = async (videoUrl: string, videoTitle: string, summaryLength: SummaryLength, apiKey: string, modelName: string = 'gemini-2.5-flash', language: Language = 'en'): Promise<string> => {
     if (!apiKey) {
         throw new Error("API Key is missing. Please provide it in the settings.");
     }
@@ -39,7 +48,9 @@ export const analyzeVideo = async (videoUrl: string, videoTitle: string, summary
         *   If the exact chronological order is unclear, organize by key themes or topics.
     4.  **Format:** "${lengthInstruction}"
         *   Use clear headings and bullet points.
+        *   Use clear headings and bullet points.
         *   **Crucial:** Ensure the summary reflects the *actual spoken and visual content* of the video, not just its title or premise.
+    5.  **Language:** Generate the ENTIRE summary in **${LANGUAGE_NAMES[language]}**. Translate any extracted content to ${LANGUAGE_NAMES[language]} if necessary.
 
     **Output Format:**
     Return the summary directly in **Markdown** format. Do NOT wrap it in JSON or code blocks.
@@ -52,7 +63,7 @@ export const analyzeVideo = async (videoUrl: string, videoTitle: string, summary
     try {
         console.log("Sending prompt to Gemini...");
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
+            model: modelName,
             contents: [{ parts: [{ text: prompt }] }],
             config: {
                 tools: [{ googleSearch: {} }],
