@@ -1,6 +1,6 @@
-```javascript
 const { app, BrowserWindow, ipcMain, shell } = require('electron');
 const path = require('path');
+// Electron Main Process
 // Electron Main Process
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
