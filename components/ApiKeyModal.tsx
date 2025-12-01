@@ -5,9 +5,11 @@ import { useLanguage } from '../i18n/LanguageContext';
 interface ApiKeyModalProps {
     isOpen: boolean;
     onClose: () => void;
+    onSave: (key: string) => void;
     theme: 'light' | 'dark';
     selectedModel?: string;
     onModelChange?: (model: string) => void;
+    initialKey?: string;
 }
 
 const MODELS = [
@@ -21,31 +23,23 @@ const MODELS = [
     { id: 'gemini-2.0-flash-lite', name: 'Gemini 2.0 Flash-Lite' },
 ];
 
-const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose, theme, selectedModel = 'gemini-2.5-flash', onModelChange }) => {
+const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose, onSave, theme, selectedModel = 'gemini-2.5-flash', onModelChange, initialKey = '' }) => {
     const { t } = useLanguage();
-    const [key, setKey] = useState('');
+    const [key, setKey] = useState(initialKey);
     const [error, setError] = useState('');
 
     useEffect(() => {
-        // This component no longer receives initialKey directly,
-        // so we might need to fetch it or pass it differently if needed.
-        // For now, removing the initialKey dependency.
-        // setApiKey(initialKey);
-    }, []); // Removed initialKey from dependency array
+        setKey(initialKey);
+    }, [initialKey]);
 
     if (!isOpen) return null;
 
     const handleSave = () => {
-        // Assuming onSave is no longer passed as a prop,
-        // and the key is handled internally or by a parent component
-        // that reads the state.
-        // If onSave is still needed, it should be added back to props.
         if (!key.trim()) {
             setError(t.settings.apiKeyEmptyError);
             return;
         }
-        // Placeholder for actual save logic, e.g., saving to localStorage
-        console.log("Saving API Key:", key.trim());
+        onSave(key.trim());
         onClose();
     };
 

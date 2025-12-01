@@ -102,6 +102,14 @@ const App: React.FC = () => {
       a.id === videoId ? { ...a, status: AnalysisStatus.Processing, error: undefined } : a
     ));
 
+    if (!apiKey) {
+      setVideoAnalyses(prev => prev.map(a =>
+        a.id === videoId ? { ...a, status: AnalysisStatus.Error, error: "API Key is missing. Please check settings." } : a
+      ));
+      setIsApiKeyModalOpen(true);
+      return;
+    }
+
     try {
       // Step 1: Re-validate video existence and get title
       const validationResult = await validateVideoExists(analysisToRetry.url);
@@ -146,6 +154,12 @@ const App: React.FC = () => {
 
     if (urls.length === 0) {
       setGlobalError("Please enter at least one YouTube URL.");
+      return;
+    }
+
+    if (!apiKey) {
+      setGlobalError("API Key is missing. Please enter your Google Gemini API Key in the settings.");
+      setIsApiKeyModalOpen(true);
       return;
     }
 
