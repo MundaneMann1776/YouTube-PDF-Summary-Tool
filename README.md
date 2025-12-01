@@ -8,11 +8,11 @@ Transform YouTube videos into detailed, professional PDF summaries using the pow
 
 Here is what this tool does:
 
-1. AI Summarization : uses Google Gemini to analyze video content in 5 languages (EN, TR, FR, DE, ES)
+1. AI Summarization : Uses Google Gemini to analyze video content in 5 languages (EN, TR, FR, DE, ES)
 
-2. PDF Generation : creates professional APA-style PDF documents
+2. PDF Generation : Creates professional APA-style PDF documents
 
-3. Smart Search : finds transcripts or synthesizes summaries from web data
+3. Smart Search : Finds transcripts or synthesizes summaries from web data
 
 ## **Building Requirements:**
 
