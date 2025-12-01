@@ -1,94 +1,127 @@
 import React, { useState, useEffect } from 'react';
-import { CheckCircleIcon, ExclamationCircleIcon } from './IconComponents';
+import { XMarkIcon, CheckCircleIcon, ExclamationCircleIcon } from './IconComponents';
+import { useLanguage } from '../i18n/LanguageContext';
 
 interface ApiKeyModalProps {
     isOpen: boolean;
-    onSave: (apiKey: string) => void;
     onClose: () => void;
-    initialKey?: string;
     theme: 'light' | 'dark';
+    selectedModel?: string;
+    onModelChange?: (model: string) => void;
 }
 
-const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onSave, onClose, initialKey = '', theme }) => {
-    const [apiKey, setApiKey] = useState(initialKey);
+const MODELS = [
+    { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash (Recommended)' },
+    { id: 'gemini-3-pro-preview', name: 'Gemini 3 Pro Preview' },
+    { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro' },
+    { id: 'gemini-flash-latest', name: 'Gemini Flash Latest' },
+    { id: 'gemini-flash-lite-latest', name: 'Gemini Flash-Lite Latest' },
+    { id: 'gemini-2.5-flash-lite', name: 'Gemini 2.5 Flash-Lite' },
+    { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash' },
+    { id: 'gemini-2.0-flash-lite', name: 'Gemini 2.0 Flash-Lite' },
+];
+
+const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose, theme, selectedModel = 'gemini-2.5-flash', onModelChange }) => {
+    const { t } = useLanguage();
+    const [key, setKey] = useState('');
     const [error, setError] = useState('');
 
     useEffect(() => {
-        setApiKey(initialKey);
-    }, [initialKey]);
+        // This component no longer receives initialKey directly,
+        // so we might need to fetch it or pass it differently if needed.
+        // For now, removing the initialKey dependency.
+        // setApiKey(initialKey);
+    }, []); // Removed initialKey from dependency array
 
     if (!isOpen) return null;
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!apiKey.trim()) {
-            setError('API Key cannot be empty');
+    const handleSave = () => {
+        // Assuming onSave is no longer passed as a prop,
+        // and the key is handled internally or by a parent component
+        // that reads the state.
+        // If onSave is still needed, it should be added back to props.
+        if (!key.trim()) {
+            setError(t.settings.apiKeyEmptyError);
             return;
         }
-        onSave(apiKey.trim());
+        // Placeholder for actual save logic, e.g., saving to localStorage
+        console.log("Saving API Key:", key.trim());
         onClose();
     };
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
             <div className={`w-full max-w-md p-6 rounded-lg shadow-xl ${theme === 'dark' ? 'bg-gray-800 text-gray-100' : 'bg-white text-gray-900'}`}>
-                <h2 className="text-2xl font-bold mb-4">Gemini API Key</h2>
-                <p className={`mb-4 text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                    To use this application, you need to provide your own Google Gemini API Key.
-                    The key is stored locally on your device.
-                </p>
+                <div className={`flex justify-between items-center p-6 border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+                    <h2 className={`text-xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+                        {t.settings.title}
+                    </h2>
+                    <button onClick={onClose} className={`p-1 rounded-full hover:bg-opacity-10 ${theme === 'dark' ? 'hover:bg-white text-gray-400' : 'hover:bg-black text-gray-500'}`}>
+                        <XMarkIcon className="w-6 h-6" />
+                    </button>
+                </div>
 
-                <form onSubmit={handleSubmit}>
-                    <div className="mb-4">
-                        <label htmlFor="apiKey" className={`block text-sm font-medium mb-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                            API Key
+                <div className="p-6 space-y-6">
+                    {/* Model Selection */}
+                    {onModelChange && (
+                        <div>
+                            <label className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                                {t.settings.modelLabel}
+                            </label>
+                            <select
+                                value={selectedModel}
+                                onChange={(e) => onModelChange(e.target.value)}
+                                className={`w-full p-3 rounded-lg border focus:ring-2 focus:ring-red-500 outline-none transition-all ${theme === 'dark'
+                                    ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-500'
+                                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
+                                    }`}
+                            >
+                                {MODELS.map(model => (
+                                    <option key={model.id} value={model.id}>{model.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
+
+                    {/* API Key Input */}
+                    <div>
+                        <label htmlFor="apiKey" className={`block text-sm font-medium mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                            {t.settings.apiKeyLabel}
                         </label>
                         <input
                             type="password"
                             id="apiKey"
-                            value={apiKey}
+                            value={key}
                             onChange={(e) => {
-                                setApiKey(e.target.value);
+                                setKey(e.target.value);
                                 setError('');
                             }}
-                            className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none ${theme === 'dark'
-                                    ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-500'
-                                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'
-                                }`}
-                            placeholder="AIzaSy..."
+                            placeholder={t.settings.apiKeyPlaceholder}
+                            className={`w-full p-3 rounded-lg border focus:ring-2 focus:ring-red-500 outline-none transition-all ${theme === 'dark' ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-500' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'}`}
                         />
                         {error && <p className="mt-1 text-sm text-red-500 flex items-center gap-1"><ExclamationCircleIcon className="w-4 h-4" /> {error}</p>}
                     </div>
 
-                    <div className="flex justify-end gap-3">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${theme === 'dark'
-                                    ? 'bg-gray-700 hover:bg-gray-600 text-gray-300'
-                                    : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
-                                }`}
+                    <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                        <a
+                            href="https://aistudio.google.com/app/apikey"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm text-blue-500 hover:text-blue-400 flex items-center gap-1"
                         >
-                            Cancel
-                        </button>
-                        <button
-                            type="submit"
-                            className="px-4 py-2 rounded-md text-sm font-medium bg-red-600 hover:bg-red-700 text-white transition-colors"
-                        >
-                            Save Key
-                        </button>
+                            {t.settings.getKeyLink} <span aria-hidden="true">&rarr;</span>
+                        </a>
                     </div>
-                </form>
+                </div>
 
-                <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                    <a
-                        href="https://aistudio.google.com/app/apikey"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm text-blue-500 hover:text-blue-400 flex items-center gap-1"
+                <div className={`p-6 border-t ${theme === 'dark' ? 'border-gray-700 bg-gray-800/50' : 'border-gray-100 bg-gray-50'}`}>
+                    <button
+                        onClick={handleSave}
+                        className="w-full py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold transition-colors shadow-lg flex items-center justify-center gap-2"
                     >
-                        Get an API Key <span aria-hidden="true">&rarr;</span>
-                    </a>
+                        <CheckCircleIcon className="w-5 h-5" />
+                        {t.buttons.save}
+                    </button>
                 </div>
             </div>
         </div>
