@@ -268,15 +268,12 @@ export const generatePdf = async (title: string, summary: string) => {
     }
   });
 
-}
-  });
-
-console.log("PDF content generated. Attempting to save...");
-try {
-  doc.save(fileName);
-  console.log("PDF saved successfully.");
-} catch (err) {
-  console.error("Error saving PDF:", err);
-  alert("Failed to save PDF. Please check the console for details.");
-}
+  console.log("PDF content generated. Attempting to save...");
+  try {
+    doc.save(fileName);
+    console.log("PDF saved successfully.");
+  } catch (err) {
+    console.error("Error saving PDF:", err);
+    alert("Failed to save PDF. Please check the console for details.");
+  }
 };
