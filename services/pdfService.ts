@@ -176,19 +176,7 @@ export const generatePdf = async (title: string, summary: string) => {
       doc.setTextColor(COLORS.text[0], COLORS.text[1], COLORS.text[2]);
 
       // APA Paragraph Indentation: First line indented 0.5in
-      // We need to manually handle the first line indent.
-      // 1. Calculate width for first line (usableWidth - indent)
-      // 2. Split text. The first part fits in the indented line.
-      // 3. The rest fits in full width lines.
-
-      // Simplified approach for jsPDF:
-      // We can't easily mix widths in `splitTextToSize`.
-      // Instead, we'll just indent the first line's X position.
-      // But if the first line wraps, `splitTextToSize` assumes consistent width.
-
-      // Better approach:
-      // 1. Get all words.
-      // 2. Build lines manually.
+      // We manually handle word wrapping to support the first-line indent.
 
       const words = line.split(' ');
       let currentLine = '';
@@ -197,9 +185,8 @@ export const generatePdf = async (title: string, summary: string) => {
       words.forEach((word, index) => {
         const space = currentLine ? ' ' : '';
         const testLine = currentLine + space + word;
-        const testWidth = doc.getStringUnitWidth(testLine) * fontSize; // Approximate width in points? No, need to multiply by font size / scale factor.
-        // jsPDF unit is 'pt'. getStringUnitWidth returns width in 'em' units (1/1000 of font size usually).
-        // Actual width = unitWidth * fontSize.
+        // Use getTextWidth for accurate measurement in points
+        const testWidth = doc.getTextWidth(testLine);
 
         const availableWidth = isFirstLine ? (usableWidth - SPACING.indent) : usableWidth;
 
