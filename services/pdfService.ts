@@ -2,6 +2,7 @@
 import { jsPDF } from "jspdf";
 
 export const generatePdf = async (title: string, summary: string) => {
+  console.log("generatePdf called with title:", title);
   const doc = new jsPDF({
     orientation: 'p',
     unit: 'pt',
