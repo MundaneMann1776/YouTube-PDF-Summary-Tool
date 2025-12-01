@@ -12,7 +12,10 @@ export const generatePdf = async (title: string, summary: string) => {
   // Default to standard font
   let currentFont = 'Helvetica';
 
-  // Load Fonts
+  // Load Fonts - TEMPORARILY DISABLED FOR WEB STABILITY
+  // The custom font files are causing parsing errors in the web build (jsPDF PubSub Error).
+  // We are forcing Helvetica to ensure the PDF download works reliably.
+  /*
   const loadFont = async (filename: string): Promise<string> => {
     // Use absolute path from root for web compatibility
     const path = `/fonts/${filename}`;
@@ -49,7 +52,7 @@ export const generatePdf = async (title: string, summary: string) => {
     console.log("Fonts added to VFS. Registering fonts...");
     doc.addFont('Roboto-Regular.ttf', 'Roboto', 'normal');
     doc.addFont('Roboto-Bold.ttf', 'Roboto', 'bold');
-
+    
     // Only switch to Roboto if everything above succeeded
     currentFont = 'Roboto';
     console.log("Fonts registered successfully. Switched to Roboto.");
@@ -57,6 +60,8 @@ export const generatePdf = async (title: string, summary: string) => {
     console.error("Critical Font Error - Falling back to Helvetica:", e);
     // Keep currentFont as 'Helvetica'
   }
+  */
+  console.log("Using standard font (Helvetica) for stability.");
 
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
