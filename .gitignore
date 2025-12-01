@@ -1,6 +1,7 @@
 # Logs
 logs
 *.log
+# Git Ignore Rules
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
