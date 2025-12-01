@@ -10,9 +10,8 @@ export const generatePdf = async (title: string, summary: string) => {
 
   // Load Fonts
   const loadFont = async (filename: string): Promise<string> => {
-    // Construct absolute path based on current location to avoid relative path issues in Electron
-    const baseUrl = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
-    const path = `${baseUrl}fonts/${filename}`;
+    // Use absolute path from root for web compatibility
+    const path = `/fonts/${filename}`;
     console.log(`Attempting to load font from: ${path}`);
 
     try {
@@ -44,8 +43,8 @@ export const generatePdf = async (title: string, summary: string) => {
     doc.addFont('Roboto-Regular.ttf', 'Roboto', 'normal');
     doc.addFont('Roboto-Bold.ttf', 'Roboto', 'bold');
   } catch (e) {
-    console.error("Critical Font Error:", e);
-    alert("Warning: Could not load custom fonts. PDF will use default fonts. Check console for details.");
+    console.error("Critical Font Error - Falling back to default fonts:", e);
+    // Do not alert, just proceed with default fonts
   }
 
   const pageWidth = doc.internal.pageSize.getWidth();
