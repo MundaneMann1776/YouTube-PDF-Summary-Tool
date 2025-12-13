@@ -1,234 +1,238 @@
-
 import { jsPDF } from "jspdf";
 
+interface TextSegment {
+    text: string;
+    bold: boolean;
+    italic: boolean;
+}
+
+const parseMarkdown = (text: string): TextSegment[] => {
+    const segments: TextSegment[] = [];
+    // Regex to split by **bold** or *italic* markers
+    // Captures the delimiters and the content
+    const regex = /(\$\*\*[^*]+\*\*|\*[^*]+\*)/g;
+    const parts = text.split(regex);
+
+    parts.forEach(part => {
+        if (!part) return;
+
+        if (part.startsWith('**') && part.endsWith('**')) {
+            segments.push({ text: part.slice(2, -2), bold: true, italic: false });
+        } else if (part.startsWith('*') && part.endsWith('*')) {
+            segments.push({ text: part.slice(1, -1), bold: false, italic: true });
+        } else {
+            segments.push({ text: part, bold: false, italic: false });
+        }
+    });
+
+    return segments;
+};
+
 export const generatePdf = async (title: string, summary: string) => {
-  console.log("generatePdf called with title:", title);
-  const doc = new jsPDF({
-    orientation: 'p',
-    unit: 'pt',
-    format: 'a4'
-  });
+    const doc = new jsPDF({
+        orientation: 'p',
+        unit: 'pt',
+        format: 'a4'
+    });
 
-  // Explicitly set default font to helvetica (standard PDF font)
-  const currentFont = 'helvetica';
-  doc.setFont(currentFont);
+    // Configuration
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 50; // Standard ~0.7 inch margin
+    const usableWidth = pageWidth - (margin * 2);
 
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const pageHeight = doc.internal.pageSize.getHeight();
-  const margin = 72; // 1 inch margin (APA Standard)
-  const usableWidth = pageWidth - (margin * 2);
+    const fonts = {
+        normal: 'times', // Times New Roman is standard for professional docs
+        bold: 'times',
+        italic: 'times',
+        boldItalic: 'times'
+    };
+    
+    // Explicitly check/set fonts if needed, but 'times' is standard in jspdf
 
-  // Creates a filesystem-safe filename from the video title.
-  const safeTitle = title.replace(/[\/\\?%*:|"<>]/g, '-').trim();
-  const fileName = `${safeTitle}.pdf`;
+    const styles = {
+        title: { fontSize: 24, fontStyle: 'bold', align: 'center' as const, spacing: 40 },
+        h1: { fontSize: 16, fontStyle: 'bold', align: 'left' as const, spacing: 15 },
+        h2: { fontSize: 14, fontStyle: 'bold', align: 'left' as const, spacing: 12 },
+        h3: { fontSize: 12, fontStyle: 'bold', align: 'left' as const, spacing: 10 },
+        body: { fontSize: 11, fontStyle: 'normal', lineHeight: 1.4 },
+        footer: { fontSize: 9, fontStyle: 'normal' }
+    };
 
-  // --- APA Style Configuration ---
-  const FONT_SIZES = {
-    title: 12,
-    h1: 12,
-    h2: 12,
-    body: 12,
-    footer: 10,
-  };
-  const COLORS = {
-    text: [0, 0, 0],
-  };
+    let currentY = margin;
 
-  // Line height multipliers
-  const LINE_HEIGHT_MULTIPLIERS = {
-    general: 2.0,
-  };
+    const addPage = () => {
+        doc.addPage();
+        currentY = margin;
+    };
 
-  const SPACING = {
-    paragraph: 0,
-    indent: 36, // 0.5 inch indent
-  };
-
-  let currentY = margin;
-
-  // Helper to add a page if needed
-  const checkAndAddPage = (heightNeeded: number) => {
-    if (currentY + heightNeeded > pageHeight - margin) {
-      addPageNumber(doc.getNumberOfPages());
-      doc.addPage();
-      currentY = margin;
-      addPageNumber(doc.getNumberOfPages());
-      return true;
-    }
-    return false;
-  };
-
-  const addPageNumber = (pageNumber: number) => {
-    doc.setFont(currentFont, "normal");
-    doc.setFontSize(FONT_SIZES.footer);
-    doc.setTextColor(COLORS.text[0], COLORS.text[1], COLORS.text[2]);
-    doc.text(`${pageNumber}`, pageWidth - margin, margin - 20, { align: 'right' });
-  };
-
-  // --- Title Page ---
-  addPageNumber(1);
-
-  // APA Title Page: Title is centered, bold, in upper half of page.
-  // We'll place it roughly 1/3 down.
-  currentY += 150;
-
-  doc.setFont(currentFont, "bold");
-  doc.setFontSize(FONT_SIZES.title);
-  doc.setTextColor(COLORS.text[0], COLORS.text[1], COLORS.text[2]);
-
-  const splitTitle = doc.splitTextToSize(title, usableWidth);
-  const lineHeight = FONT_SIZES.title * LINE_HEIGHT_MULTIPLIERS.general;
-
-  splitTitle.forEach((line: string) => {
-    doc.text(line, pageWidth / 2, currentY, { align: 'center' });
-    currentY += lineHeight;
-  });
-
-  // Extra space between title and "Author" (or in this case, "AI Generated Summary")
-  currentY += lineHeight;
-
-  doc.setFont(currentFont, "normal");
-  doc.setFontSize(FONT_SIZES.body); // Ensure body size
-  doc.text("AI Generated Summary", pageWidth / 2, currentY, { align: 'center' });
-  currentY += lineHeight;
-  doc.text("YouTube Video Summarizer", pageWidth / 2, currentY, { align: 'center' });
-
-  doc.addPage();
-  currentY = margin;
-  addPageNumber(2);
-
-  // APA: Title is repeated on the first line of the text page, centered and bold.
-  doc.setFont(currentFont, "bold");
-  doc.setFontSize(FONT_SIZES.title);
-  doc.text(title, pageWidth / 2, currentY, { align: 'center' });
-  currentY += lineHeight;
-
-  // --- Process Summary Content ---
-  const cleanSummary = summary.replace(/\\n/g, '\n').trim();
-  const lines = cleanSummary.split('\n');
-
-  lines.forEach(line => {
-    line = line.trim();
-    if (!line) return;
-
-    const cleanLineText = line
-      .replace(/\*\*(.*?)\*\*/g, '$1')
-      .replace(/\*(.*?)\*/g, '$1')
-      .replace(/__(.*?)__/g, '$1')
-      .replace(/_(.*?)_/g, '$1')
-      .replace(/`([^`]+)`/g, '$1');
-
-    let isHeading = false;
-    let headingLevel = 0;
-
-    const headingMatch = line.match(/^(#+)\s+(.*)/);
-    if (headingMatch) {
-      isHeading = true;
-      headingLevel = headingMatch[1].length;
-      line = cleanLineText.replace(/^(#+)\s+/, '');
-    } else {
-      line = cleanLineText;
-    }
-
-    const fontSize = FONT_SIZES.body;
-    const lineSpace = fontSize * LINE_HEIGHT_MULTIPLIERS.general;
-
-    if (isHeading) {
-      checkAndAddPage(lineSpace * 2);
-      doc.setFont(currentFont, "bold");
-      doc.setFontSize(FONT_SIZES.h1);
-      doc.setTextColor(COLORS.text[0], COLORS.text[1], COLORS.text[2]);
-
-      const splitHeading = doc.splitTextToSize(line, usableWidth);
-      splitHeading.forEach((headingLine: string) => {
-        if (headingLevel === 1) {
-          doc.text(headingLine, pageWidth / 2, currentY, { align: 'center' });
-        } else {
-          doc.text(headingLine, margin, currentY, { align: 'left' });
+    const checkPageBreak = (height: number) => {
+        if (currentY + height > pageHeight - margin) {
+            addPage();
+            return true;
         }
-        currentY += lineSpace;
-      });
+        return false;
+    };
 
-    } else if (line.startsWith('* ') || line.startsWith('- ')) {
-      const bulletPoint = '•';
-      const listItemText = line.replace(/^[\*\-]\s+/, '');
-      const textIndent = SPACING.indent;
+    const printSegments = (segments: TextSegment[], x: number, maxWidth: number, fontSize: number, align: 'left' | 'center' = 'left') => {
+        doc.setFontSize(fontSize);
+        const lineHeight = fontSize * styles.body.lineHeight;
+        
+        // Measure words for wrapping
+        let currentLine: any[] = [];
+        let currentLineWidth = 0;
 
-      doc.setFont(currentFont, "normal");
-      doc.setFontSize(FONT_SIZES.body);
-      doc.setTextColor(COLORS.text[0], COLORS.text[1], COLORS.text[2]);
+        const flushLine = () => {
+            if (currentLine.length === 0) return;
 
-      const splitItem = doc.splitTextToSize(listItemText, usableWidth - textIndent - 10);
-      const blockHeight = splitItem.length * lineSpace;
+            let startX = x;
+            if (align === 'center') {
+                startX = (pageWidth - currentLineWidth) / 2;
+            }
 
-      checkAndAddPage(blockHeight);
-      doc.text(bulletPoint, margin + (textIndent / 2), currentY);
+            currentLine.forEach(seg => {
+                doc.setFont(fonts.normal, seg.bold ? (seg.italic ? 'bolditalic' : 'bold') : (seg.italic ? 'italic' : 'normal'));
+                doc.text(seg.text, startX, currentY);
+                startX += doc.getTextWidth(seg.text);
+            });
+            
+            currentY += lineHeight;
+            checkPageBreak(lineHeight);
+            currentLine = [];
+            currentLineWidth = 0;
+        };
 
-      splitItem.forEach((itemLine: string) => {
-        doc.text(itemLine, margin + textIndent, currentY);
-        currentY += lineSpace;
-      });
+        segments.forEach(seg => {
+            const words = seg.text.split(/(\s+)/); // Split by whitespace but keep delimiters to preserve spacing
+            
+            words.forEach(word => {
+                if (!word) return;
+                
+                // Determine style for measurement
+                doc.setFont(fonts.normal, seg.bold ? (seg.italic ? 'bolditalic' : 'bold') : (seg.italic ? 'italic' : 'normal'));
+                const wordWidth = doc.getTextWidth(word);
 
-    } else {
-      // Standard Paragraph
-      doc.setFont(currentFont, "normal");
-      doc.setFontSize(FONT_SIZES.body);
-      doc.setTextColor(COLORS.text[0], COLORS.text[1], COLORS.text[2]);
+                if (currentLineWidth + wordWidth > maxWidth) {
+                    flushLine();
+                    // If word is whitespace and at start of new line, skip it
+                    if (/^\s+$/.test(word)) return;
+                }
 
-      // APA Paragraph Indentation: First line indented 0.5in
-      // We manually handle word wrapping to support the first-line indent.
+                currentLine.push({ text: word, bold: seg.bold, italic: seg.italic });
+                currentLineWidth += wordWidth;
+            });
+        });
 
-      const words = line.split(' ');
-      let currentLine = '';
-      let isFirstLine = true;
+        flushLine();
+    };
 
-      words.forEach((word, index) => {
-        const space = currentLine ? ' ' : '';
-        const testLine = currentLine + space + word;
-        // Use getTextWidth for accurate measurement in points
-        const testWidth = doc.getTextWidth(testLine);
+    // --- Cover Page ---
+    // Background accent
+    doc.setFillColor(245, 245, 245);
+    doc.rect(0, 0, pageWidth, pageHeight, 'F');
+    
+    // Border
+    doc.setDrawColor(50, 50, 50);
+    doc.setLineWidth(2);
+    doc.rect(margin, margin, usableWidth, pageHeight - (margin * 2), 'S');
 
-        const availableWidth = isFirstLine ? (usableWidth - SPACING.indent) : usableWidth;
+    currentY = pageHeight / 3;
 
-        if (testWidth > availableWidth && index > 0) {
-          // Line is full, print it
-          const xPos = isFirstLine ? (margin + SPACING.indent) : margin;
-          checkAndAddPage(lineSpace);
-          doc.text(currentLine, xPos, currentY);
-          currentY += lineSpace;
+    // Title
+    doc.setFont(fonts.bold, 'bold');
+    doc.setFontSize(styles.title.fontSize);
+    doc.setTextColor(33, 33, 33);
+    
+    const splitTitle = doc.splitTextToSize(title, usableWidth - 100);
+    splitTitle.forEach((line: string) => {
+        doc.text(line, pageWidth / 2, currentY, { align: 'center' });
+        currentY += 30;
+    });
 
-          currentLine = word;
-          isFirstLine = false;
-        } else {
-          currentLine = testLine;
+    currentY += 40;
+    doc.setFontSize(14);
+    doc.setFont(fonts.normal, 'normal');
+    doc.setTextColor(80, 80, 80);
+    doc.text("AI Generated Summary", pageWidth / 2, currentY, { align: 'center' });
+    
+    currentY += 20;
+    doc.text(new Date().toLocaleDateString(), pageWidth / 2, currentY, { align: 'center' });
+
+    // Footer on cover
+    doc.setFontSize(10);
+    doc.text("YouTube Video Summarizer", pageWidth / 2, pageHeight - margin - 20, { align: 'center' });
+
+    addPage();
+
+    // --- Content Pages ---
+    const lines = summary.split('\n');
+
+    lines.forEach(line => {
+        line = line.trim();
+        if (!line) {
+             currentY += styles.body.fontSize; // Paragraph spacing
+             checkPageBreak(styles.body.fontSize);
+             return;
         }
-      });
 
-      // Print last line
-      if (currentLine) {
-        const xPos = isFirstLine ? (margin + SPACING.indent) : margin;
-        checkAndAddPage(lineSpace);
-        doc.text(currentLine, xPos, currentY);
-        currentY += lineSpace;
-      }
+        // Detect Headers
+        let isHeader = false;
+        let headerLevel = 0;
+        let cleanLine = line;
+
+        const headerMatch = line.match(/^(#+)\s+(.*)/);
+        if (headerMatch) {
+            isHeader = true;
+            headerLevel = headerMatch[1].length;
+            cleanLine = headerMatch[2];
+        }
+
+        if (isHeader) {
+            currentY += 10; // Space before header
+            checkPageBreak(30); // Ensure header isn't at bottom
+            
+            const style = headerLevel === 1 ? styles.h1 : (headerLevel === 2 ? styles.h2 : styles.h3);
+            doc.setFont(fonts.bold, 'bold');
+            doc.setFontSize(style.fontSize);
+            doc.setTextColor(0, 0, 0);
+            
+            // Render Header
+            const segments = parseMarkdown(cleanLine);
+            printSegments(segments, margin, usableWidth, style.fontSize, style.align);
+            
+            currentY += 5; // Space after header
+        } else if (line.startsWith('- ') || line.startsWith('* ')) {
+            // Lists
+            const bulletText = line.substring(2);
+            const segments = parseMarkdown(bulletText);
+            
+            doc.setFont(fonts.normal, 'normal');
+            doc.setFontSize(styles.body.fontSize);
+            
+            // Draw bullet
+            const bulletY = currentY;
+            doc.text("•", margin + 10, bulletY);
+            
+            // Indent text
+            printSegments(segments, margin + 25, usableWidth - 25, styles.body.fontSize);
+        } else {
+            // Body Text
+            const segments = parseMarkdown(cleanLine);
+            printSegments(segments, margin, usableWidth, styles.body.fontSize);
+        }
+    });
+
+    // --- Page Numbering ---
+    const pageCount = doc.getNumberOfPages();
+    for (let i = 2; i <= pageCount; i++) { // Skip cover page
+        doc.setPage(i);
+        doc.setFont(fonts.normal, 'italic');
+        doc.setFontSize(styles.footer.fontSize);
+        doc.setTextColor(150, 150, 150);
+        doc.text(`Page ${i - 1} of ${pageCount - 1}`, pageWidth - margin, pageHeight - 30, { align: 'right' });
     }
-  });
 
-  console.log("PDF content generated. Attempting to save via Blob...");
-  try {
-    // Robust download method: Create Blob -> Create Link -> Click -> Cleanup
-    const blob = doc.output('blob');
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = fileName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    console.log("PDF download triggered successfully.");
-  } catch (err) {
-    console.error("Error saving PDF:", err);
-    alert("Failed to save PDF. Please check the console for details.");
-  }
+    // Save
+    const safeTitle = title.replace(/[/\\?%*:|"<>]/g, '-').trim();
+    doc.save(`${safeTitle}.pdf`);
 };
