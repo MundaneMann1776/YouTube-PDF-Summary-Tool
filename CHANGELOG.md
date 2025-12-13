@@ -1,6 +1,30 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+
+## [0.6.0] - 2025-12-13
+
+### ⚡ Framework Migration (Vue.js 3)
+- **Rebuilt Core**: Completely migrated from **Electron + React** to a lightweight, standalone **Vue.js 3** web application.
+- **Improved Performance**: faster load times and smoother interactions thanks to Vite and Vue's reactivity system.
+- **Web Deployment**: Optimized for GitHub Pages deployment (removed Electron dependencies).
+
+### 🎨 UI Overhaul
+- **Brand New Design**: Implemented a modern "glassmorphism" aesthetic with animated gradient backgrounds.
+- **Typography**: Switched to **Roboto** (sans) and **Merriweather** (serif) for a professional look.
+- **Polished Components**: Redesigned modals, buttons, and inputs with standardized focus states and transitions.
+- **Accessibility**: Improved keyboard navigation (`focus-visible`) and added ARIA labels to icon buttons.
+
+### 📄 PDF Engine Upgrade
+- **Better Formatting**: Rewrote the PDF generator to support **Bold** and *Italic* markdown parsing.
+- **Professional Layout**: Added a dedicated cover page, table of contents-style headers, and pagination (Page X of Y).
+- **Times New Roman**: Switched document font to standard professional serif.
+
+### 🔧 Fixes & Cleanup
+- **Tailwind Config**: Fixed missing content paths that were breaking styles.
+- **Fonts**: Fixed local font loading issues.
+- **Cleanup**: Removed unused Electron/React files and obsolete configurations.
+
 ## [0.5.0] - 2025-12-01
 
 ### 🌍 Internationalization (i18n)

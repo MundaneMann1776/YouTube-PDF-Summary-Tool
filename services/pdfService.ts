@@ -10,7 +10,7 @@ const parseMarkdown = (text: string): TextSegment[] => {
     const segments: TextSegment[] = [];
     // Regex to split by **bold** or *italic* markers
     // Captures the delimiters and the content
-    const regex = /(\$\*\*[^*]+\*\*|\*[^*]+\*)/g;
+    const regex = /(\*\*[^*]+\*\*|\*[^*]+\*)/g;
     const parts = text.split(regex);
 
     parts.forEach(part => {
