@@ -1,11 +1,10 @@
 /** @type {import('tailwindcss').Config} */
-// Tailwind CSS Configuration
 export default {
     content: [
         "./index.html",
-        "./App.tsx",
-        "./index.tsx",
-        "./components/**/*.{js,ts,jsx,tsx}",
+        "./App.vue",
+        "./main.ts",
+        "./components/**/*.{js,ts,jsx,tsx,vue}",
         "./services/**/*.{js,ts,jsx,tsx}"
     ],
     theme: {
