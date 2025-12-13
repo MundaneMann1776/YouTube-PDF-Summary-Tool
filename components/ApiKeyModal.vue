@@ -5,7 +5,7 @@
         <h2 :class="['text-xl font-bold', theme === 'dark' ? 'text-white' : 'text-gray-900']">
           {{ t.settings.title }}
         </h2>
-        <button @click="onClose" :class="['p-1 rounded-full hover:bg-opacity-10', theme === 'dark' ? 'hover:bg-white text-gray-400' : 'hover:bg-black text-gray-500']">
+        <button @click="onClose" :class="['p-1 rounded-full hover:bg-opacity-10', theme === 'dark' ? 'hover:bg-white text-gray-400' : 'hover:bg-black text-gray-500']" aria-label="Close">
           <XMarkIcon class="w-6 h-6" />
         </button>
       </div>

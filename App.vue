@@ -303,7 +303,8 @@ const setLang = (code: any) => {
             <div class="relative">
                 <button 
                     @click="showLangMenu = !showLangMenu"
-                    class="p-2 rounded-full w-10 h-10 flex items-center justify-center text-lg transition-colors hover:bg-black/5 dark:hover:bg-white/10"
+                    class="p-2 rounded-full w-10 h-10 flex items-center justify-center text-lg transition-colors hover:bg-black/5 dark:hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                    :aria-label="'Change Language (' + languages.find(l => l.code === language)?.label + ')'"
                 >
                     {{ languages.find(l => l.code === language)?.flag }}
                 </button>
@@ -318,7 +319,7 @@ const setLang = (code: any) => {
                         v-for="lang in languages"
                         :key="lang.code"
                         @click="setLang(lang.code)"
-                        class="px-4 py-3 text-left text-sm flex items-center gap-3 transition-colors hover:bg-brand-50 dark:hover:bg-brand-900/20"
+                        class="px-4 py-3 text-left text-sm flex items-center gap-3 transition-colors hover:bg-brand-50 dark:hover:bg-brand-900/20 focus:outline-none focus-visible:bg-brand-50 dark:focus-visible:bg-brand-900/20"
                         :class="[language === lang.code ? 'text-brand-600 font-bold' : (theme === 'dark' ? 'text-gray-300' : 'text-gray-700')]"
                       >
                         <span class="text-xl">{{ lang.flag }}</span>
@@ -335,16 +336,18 @@ const setLang = (code: any) => {
 
             <button 
                 @click="isInfoModalOpen = true"
-                class="p-2 rounded-full w-10 h-10 flex items-center justify-center transition-all hover:bg-black/5 dark:hover:bg-white/10 hover:scale-105 active:scale-95"
+                class="p-2 rounded-full w-10 h-10 flex items-center justify-center transition-all hover:bg-black/5 dark:hover:bg-white/10 hover:scale-105 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                 :class="[theme === 'dark' ? 'text-gray-300' : 'text-gray-600']"
+                aria-label="App Information"
             >
                 <InformationCircleIcon class="w-5 h-5" />
             </button>
 
             <button 
                 @click="toggleTheme"
-                class="p-2 rounded-full w-10 h-10 flex items-center justify-center transition-all hover:bg-black/5 dark:hover:bg-white/10 hover:scale-105 active:scale-95"
+                class="p-2 rounded-full w-10 h-10 flex items-center justify-center transition-all hover:bg-black/5 dark:hover:bg-white/10 hover:scale-105 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                 :class="[theme === 'dark' ? 'text-yellow-300' : 'text-blue-600']"
+                :aria-label="theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
             >
                  <SunIcon v-if="theme === 'dark'" class="w-5 h-5" />
                  <MoonIcon v-else class="w-5 h-5" />
@@ -354,8 +357,9 @@ const setLang = (code: any) => {
 
              <button 
                 @click="isApiKeyModalOpen = true"
-                class="p-2 rounded-full w-10 h-10 flex items-center justify-center transition-all hover:bg-black/5 dark:hover:bg-white/10 hover:scale-105 active:scale-95"
+                class="p-2 rounded-full w-10 h-10 flex items-center justify-center transition-all hover:bg-black/5 dark:hover:bg-white/10 hover:scale-105 active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                 :class="[theme === 'dark' ? 'text-gray-300' : 'text-gray-600']"
+                aria-label="Settings & API Key"
             >
                 <SettingsIcon class="w-5 h-5" />
             </button>
