@@ -37,6 +37,7 @@ const isInfoModalOpen = ref(false);
 const isApiKeyModalOpen = ref(false);
 const apiKey = ref('');
 const selectedModel = ref('gemini-2.5-flash');
+const showLangMenu = ref(false);
 
 const isCancelledRef = ref(false);
 
@@ -54,9 +55,19 @@ const isValidYoutubeUrl = (url: string): boolean => {
   return pattern.test(url);
 };
 
-// Progress calculation if needed, currently unused in UI logic but good to have
-// const progress = computed(() => totalVideos.value > 0 ? (processedVideos.value / totalVideos.value) * 100 : 0);
+const getSummaryLengthClass = (length: string) => {
+  const base = 'flex-1 py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-300 capitalize flex items-center justify-center gap-2';
+  const isSelected = summaryLength.value === length;
+  const isDark = theme.value === 'dark';
 
+  if (isSelected) {
+    return [base, 'bg-brand-600 text-white shadow-lg shadow-brand-500/30 transform scale-[1.02]'];
+  } else {
+    return [base, isDark 
+      ? 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-gray-200' 
+      : 'bg-white text-gray-500 hover:bg-gray-50 hover:text-gray-700 border border-gray-200'];
+  }
+};
 
 // Lifecycle
 onMounted(() => {
@@ -64,7 +75,7 @@ onMounted(() => {
   if (storedKey) {
     apiKey.value = storedKey;
   } else {
-    isApiKeyModalOpen.value = true;
+    setTimeout(() => { isApiKeyModalOpen.value = true; }, 500); // Delay slightly for effect
   }
 
   const storedModel = localStorage.getItem('GEMINI_MODEL');
@@ -208,7 +219,6 @@ const handleAnalysis = async () => {
   for (const analysis of analysesToProcess) {
     if (isCancelledRef.value) break;
 
-    // Set processing
     const idx = videoAnalyses.value.findIndex(a => a.id === analysis.id);
     if (idx !== -1) videoAnalyses.value[idx].status = AnalysisStatus.Processing;
 
@@ -247,7 +257,6 @@ const handleClearAll = () => {
 const triggerPdfGeneration = async (id: string, title: string, summary: string) => {
     pdfGeneratingId.value = id;
     try {
-        // Slight delay to allow UI to update
         await new Promise(resolve => setTimeout(resolve, 10));
         await generatePdf(title, summary);
     } catch (err) {
@@ -261,256 +270,331 @@ const toggleTheme = () => {
     theme.value = theme.value === 'dark' ? 'light' : 'dark';
 };
 
-const setLang = (code: any) => setLanguage(code);
-
-const getSummaryLengthClass = (length: string) => {
-  const base = 'flex-1 py-2 rounded-lg text-sm font-medium transition-all duration-200 capitalize';
-  const isSelected = summaryLength.value === length;
-  const isDark = theme.value === 'dark';
-
-  if (isSelected) {
-    return [base, isDark ? 'bg-gray-700 text-white shadow-sm' : 'bg-white text-gray-900 shadow-sm'];
-  } else {
-    return [base, isDark ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/50' : 'text-gray-500 hover:text-gray-700 hover:bg-white/50'];
-  }
+const setLang = (code: any) => {
+  setLanguage(code);
+  showLangMenu.value = false;
 };
-
 </script>
 
 <template>
-  <div :class="['min-h-screen font-sans flex flex-col items-center p-4 sm:p-6 lg:p-8 transition-colors duration-300', theme === 'dark' ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-800']">
-    <div class="w-full max-w-4xl mx-auto relative">
-      
-      <!-- Top Bar -->
-      <div 
-        class="absolute top-4 right-4 flex items-center gap-1 p-1.5 rounded-full border shadow-lg backdrop-blur-md z-50 transition-all duration-500 ease-out transform"
-        :class="[
-           theme === 'dark' ? 'bg-gray-800/40 border-gray-700/50 shadow-black/20' : 'bg-white/40 border-white/50 shadow-gray-200/50'
-        ]"
-      >
-        <!-- Language Selector -->
-        <div class="relative group">
-            <button :class="['p-2 rounded-full transition-colors duration-200 focus:outline-none flex items-center justify-center w-9 h-9 text-lg', theme === 'dark' ? 'hover:bg-white/10' : 'hover:bg-black/5']">
-                {{ languages.find(l => l.code === language)?.flag }}
-            </button>
-            <div :class="['absolute right-0 top-full mt-2 w-32 py-1 rounded-xl shadow-xl border backdrop-blur-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-right z-50', theme === 'dark' ? 'bg-gray-800/90 border-gray-700' : 'bg-white/90 border-gray-200']">
-                 <button
-                  v-for="lang in languages"
-                  :key="lang.code"
-                  @click="setLang(lang.code)"
-                  :class="['w-full px-4 py-2 text-left text-sm flex items-center gap-2 hover:bg-black/5 dark:hover:bg-white/10 transition-colors', language === lang.code ? (theme === 'dark' ? 'text-white font-bold' : 'text-black font-bold') : (theme === 'dark' ? 'text-gray-300' : 'text-gray-700')]"
+  <div 
+    class="min-h-screen font-sans relative overflow-x-hidden transition-colors duration-500 ease-in-out selection:bg-brand-500 selection:text-white"
+    :class="[theme === 'dark' ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-800']"
+  >
+    <!-- Background Decor -->
+    <div class="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+        <div 
+            class="absolute top-[-20%] right-[-10%] w-[800px] h-[800px] rounded-full blur-[120px] transition-all duration-1000 opacity-40 mix-blend-screen animate-pulse-slow"
+            :class="[theme === 'dark' ? 'bg-brand-900/40' : 'bg-brand-200/60']"
+        ></div>
+        <div 
+            class="absolute bottom-[-10%] left-[-10%] w-[600px] h-[600px] rounded-full blur-[100px] transition-all duration-1000 opacity-30 mix-blend-screen"
+            :class="[theme === 'dark' ? 'bg-blue-900/30' : 'bg-blue-200/50']"
+        ></div>
+    </div>
+
+    <!-- Top Navigation -->
+    <nav class="relative z-50 flex items-center justify-end p-6 max-w-6xl mx-auto">
+        <div 
+            class="flex items-center gap-1 p-1.5 rounded-full border shadow-xl backdrop-blur-xl transition-all duration-300"
+            :class="[theme === 'dark' ? 'bg-gray-800/60 border-gray-700/50 shadow-black/20' : 'bg-white/70 border-white/60 shadow-gray-200/50']"
+        >
+            <!-- Language -->
+            <div class="relative">
+                <button 
+                    @click="showLangMenu = !showLangMenu"
+                    class="p-2 rounded-full w-10 h-10 flex items-center justify-center text-lg transition-colors hover:bg-black/5 dark:hover:bg-white/10"
                 >
-                  <span>{{ lang.flag }}</span>
-                  <span>{{ lang.label }}</span>
+                    {{ languages.find(l => l.code === language)?.flag }}
+                </button>
+                
+                <Transition name="fade">
+                  <div 
+                    v-if="showLangMenu"
+                    class="absolute right-0 top-full mt-3 w-40 py-2 rounded-2xl shadow-2xl border backdrop-blur-xl flex flex-col overflow-hidden origin-top-right transform"
+                    :class="[theme === 'dark' ? 'bg-gray-800/95 border-gray-700' : 'bg-white/95 border-gray-200']"
+                  >
+                      <button
+                        v-for="lang in languages"
+                        :key="lang.code"
+                        @click="setLang(lang.code)"
+                        class="px-4 py-3 text-left text-sm flex items-center gap-3 transition-colors hover:bg-brand-50 dark:hover:bg-brand-900/20"
+                        :class="[language === lang.code ? 'text-brand-600 font-bold' : (theme === 'dark' ? 'text-gray-300' : 'text-gray-700')]"
+                      >
+                        <span class="text-xl">{{ lang.flag }}</span>
+                        <span>{{ lang.label }}</span>
+                      </button>
+                  </div>
+                </Transition>
+                
+                <!-- Overlay to close menu -->
+                <div v-if="showLangMenu" @click="showLangMenu = false" class="fixed inset-0 z-[-1]"></div>
+            </div>
+
+            <div class="w-px h-5 bg-gray-300/30 dark:bg-gray-600/50 mx-1"></div>
+
+            <button 
+                @click="isInfoModalOpen = true"
+                class="p-2 rounded-full w-10 h-10 flex items-center justify-center transition-all hover:bg-black/5 dark:hover:bg-white/10 hover:scale-105 active:scale-95"
+                :class="[theme === 'dark' ? 'text-gray-300' : 'text-gray-600']"
+            >
+                <InformationCircleIcon class="w-5 h-5" />
+            </button>
+
+            <button 
+                @click="toggleTheme"
+                class="p-2 rounded-full w-10 h-10 flex items-center justify-center transition-all hover:bg-black/5 dark:hover:bg-white/10 hover:scale-105 active:scale-95"
+                :class="[theme === 'dark' ? 'text-yellow-300' : 'text-blue-600']"
+            >
+                 <SunIcon v-if="theme === 'dark'" class="w-5 h-5" />
+                 <MoonIcon v-else class="w-5 h-5" />
+            </button>
+
+             <div class="w-px h-5 bg-gray-300/30 dark:bg-gray-600/50 mx-1"></div>
+
+             <button 
+                @click="isApiKeyModalOpen = true"
+                class="p-2 rounded-full w-10 h-10 flex items-center justify-center transition-all hover:bg-black/5 dark:hover:bg-white/10 hover:scale-105 active:scale-95"
+                :class="[theme === 'dark' ? 'text-gray-300' : 'text-gray-600']"
+            >
+                <SettingsIcon class="w-5 h-5" />
+            </button>
+        </div>
+    </nav>
+
+    <main class="relative z-10 max-w-4xl mx-auto px-6 pb-20 pt-8">
+        
+        <!-- Hero Section -->
+        <header class="text-center mb-12">
+            <div class="inline-flex items-center justify-center p-4 bg-gradient-to-br from-brand-500 to-brand-700 rounded-3xl shadow-xl shadow-brand-600/30 mb-6 transform hover:scale-105 transition-transform duration-500 cursor-default">
+                <VideoIcon class="w-12 h-12 text-white drop-shadow-md" />
+            </div>
+            <h1 class="text-4xl md:text-6xl font-black tracking-tight mb-4 bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-700 to-gray-900 dark:from-white dark:via-gray-200 dark:to-gray-400">
+                {{ t.appTitle }}
+            </h1>
+            <p class="text-lg md:text-xl font-medium opacity-80 max-w-2xl mx-auto leading-relaxed" :class="[theme === 'dark' ? 'text-gray-400' : 'text-gray-600']">
+                {{ t.appSubtitle }}
+            </p>
+        </header>
+
+        <!-- Main Card -->
+        <div 
+            class="rounded-3xl p-1 shadow-2xl transition-all duration-500"
+            :class="[theme === 'dark' ? 'bg-gradient-to-b from-gray-700/50 to-gray-800/50 shadow-black/40' : 'bg-gradient-to-b from-white/80 to-white/40 shadow-xl shadow-brand-900/5']"
+        >
+            <div 
+                class="rounded-[1.3rem] p-6 md:p-10 backdrop-blur-xl h-full"
+                :class="[theme === 'dark' ? 'bg-gray-900/80' : 'bg-white/70']"
+            >
+                <div class="mb-8">
+                    <label for="video-links" class="block text-sm font-bold uppercase tracking-wider mb-3 opacity-70 ml-1">
+                        {{ t.inputLabel }}
+                    </label>
+                    <div class="relative group">
+                        <textarea
+                            id="video-links"
+                            v-model="linksInput"
+                            :placeholder="t.inputPlaceholder"
+                            :disabled="isProcessing"
+                            class="w-full h-40 p-5 rounded-2xl border-2 transition-all duration-300 resize-none font-mono text-sm leading-relaxed focus:outline-none"
+                            :class="[
+                                theme === 'dark' 
+                                    ? 'bg-gray-800/50 border-gray-700 text-gray-200 placeholder-gray-600 focus:border-brand-500 focus:bg-gray-800' 
+                                    : 'bg-white border-gray-200 text-gray-900 placeholder-gray-400 focus:border-brand-500 focus:bg-white shadow-inner'
+                            ]"
+                        ></textarea>
+                         <!-- Hints -->
+                         <div class="flex justify-between items-center mt-3 px-1">
+                             <p class="text-xs font-medium opacity-50">{{ t.enterUrlHint }}</p>
+                             <div class="flex items-center gap-1.5 text-xs font-bold text-amber-500 bg-amber-500/10 px-2 py-1 rounded-md">
+                                 <InformationCircleIcon class="w-3.5 h-3.5" />
+                                 {{ t.publicVideoHint }}
+                             </div>
+                         </div>
+                    </div>
+                </div>
+
+                <!-- Settings Row -->
+                <div class="mb-10">
+                    <label class="block text-sm font-bold uppercase tracking-wider mb-3 opacity-70 ml-1 text-center">
+                        {{ t.summaryLength }}
+                    </label>
+                    <div class="flex flex-col sm:flex-row gap-3 p-1.5 rounded-2xl" :class="[theme === 'dark' ? 'bg-gray-800/50' : 'bg-gray-100']">
+                         <button
+                            v-for="length in ['short', 'medium', 'comprehensive']"
+                            :key="length"
+                            @click="summaryLength = length as SummaryLength"
+                            :disabled="isProcessing"
+                            :class="getSummaryLengthClass(length)"
+                         >
+                            <span v-if="length === 'short'" class="text-lg">📝</span>
+                            <span v-if="length === 'medium'" class="text-lg">📑</span>
+                            <span v-if="length === 'comprehensive'" class="text-lg">📚</span>
+                            {{ t.lengths[length as 'short' | 'medium' | 'comprehensive'] }}
+                         </button>
+                    </div>
+                </div>
+
+                <!-- Global Error -->
+                 <Transition name="fade">
+                    <div v-if="globalError" class="mb-8 p-4 rounded-xl border-l-4 border-red-500 flex gap-4 items-start shadow-sm" :class="[theme === 'dark' ? 'bg-red-900/10 text-red-200' : 'bg-red-50 text-red-800']">
+                        <ExclamationCircleIcon class="w-6 h-6 flex-shrink-0 text-red-500 mt-0.5" />
+                        <div class="text-sm font-medium whitespace-pre-wrap leading-relaxed">{{ globalError }}</div>
+                    </div>
+                 </Transition>
+
+                <!-- Main Action Button -->
+                <button
+                    v-if="!isProcessing"
+                    @click="handleAnalysis"
+                    class="w-full py-5 px-8 rounded-2xl font-bold text-white text-lg shadow-xl transition-all duration-300 hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-3 relative overflow-hidden group"
+                    :class="['bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-500 hover:to-brand-400 shadow-brand-900/20']"
+                >
+                    <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
+                    <VideoIcon class="w-6 h-6 relative z-10" />
+                    <span class="relative z-10">{{ t.generateBtn }}</span>
+                </button>
+
+                <button
+                    v-else
+                    @click="handleStop"
+                    class="w-full py-5 px-8 rounded-2xl font-bold text-white text-lg shadow-xl transition-all duration-300 hover:bg-gray-700 flex items-center justify-center gap-3 animate-pulse"
+                    :class="[theme === 'dark' ? 'bg-gray-800' : 'bg-gray-800']"
+                >
+                    <SpinnerIcon class="w-6 h-6" />
+                    {{ t.stopBtn }}
                 </button>
             </div>
         </div>
 
-        <div :class="['w-px h-4', theme === 'dark' ? 'bg-gray-700' : 'bg-gray-300/50']"></div>
+        <!-- Results List -->
+        <Transition name="list" mode="out-in">
+            <div v-if="videoAnalyses.length > 0" class="mt-16">
+                 <div class="flex justify-between items-center mb-6 px-2">
+                      <h2 class="text-2xl font-serif font-bold flex items-center gap-3" :class="[theme === 'dark' ? 'text-gray-200' : 'text-gray-800']">
+                          <span>Results</span>
+                          <span class="text-sm font-sans font-normal opacity-50 bg-gray-500/10 px-2 py-0.5 rounded-md">{{ videoAnalyses.length }} items</span>
+                      </h2>
+                      <button
+                        v-if="!isProcessing"
+                        @click="handleClearAll"
+                        class="group flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 border hover:shadow-sm"
+                        :class="[theme === 'dark' ? 'border-gray-700 text-gray-400 hover:bg-gray-800 hover:text-red-400' : 'border-gray-200 text-gray-500 hover:bg-white hover:text-red-600']"
+                      >
+                        <TrashIcon class="w-4 h-4 transition-colors" />
+                        <span>Clear All</span>
+                      </button>
+                  </div>
 
-        <button 
-            @click="isInfoModalOpen = true"
-            :class="['p-2 rounded-full transition-colors duration-200 focus:outline-none hover:scale-110 active:scale-95 transform', theme === 'dark' ? 'text-gray-300 hover:bg-white/10' : 'text-gray-600 hover:bg-black/5']"
-        >
-            <InformationCircleIcon class="w-5 h-5" />
-        </button>
-
-        <div :class="['w-px h-4', theme === 'dark' ? 'bg-gray-700' : 'bg-gray-300/50']"></div>
-
-        <button 
-            @click="toggleTheme"
-            :class="['p-2 rounded-full transition-colors duration-200 focus:outline-none hover:scale-110 active:scale-95 transform', theme === 'dark' ? 'text-yellow-300 hover:bg-white/10' : 'text-blue-500 hover:bg-black/5']"
-        >
-             <SunIcon v-if="theme === 'dark'" class="w-5 h-5" />
-             <MoonIcon v-else class="w-5 h-5" />
-        </button>
-
-         <div :class="['w-px h-4', theme === 'dark' ? 'bg-gray-700' : 'bg-gray-300/50']"></div>
-
-         <button 
-            @click="isApiKeyModalOpen = true"
-            :class="['p-2 rounded-full transition-colors duration-200 focus:outline-none hover:scale-110 active:scale-95 transform', theme === 'dark' ? 'text-gray-300 hover:bg-white/10' : 'text-gray-600 hover:bg-black/5']"
-        >
-            <SettingsIcon class="w-5 h-5" />
-        </button>
-
-      </div>
-
-      <!-- Header -->
-      <header class="text-center mb-8 pt-8">
-          <div class="flex justify-center items-center gap-4 mb-2">
-            <div class="relative">
-              <div class="absolute -inset-1 bg-gradient-to-r from-red-600 to-red-400 rounded-full blur opacity-40 animate-pulse"></div>
-              <VideoIcon class="w-16 h-16 text-red-500 relative z-10 drop-shadow-2xl" />
-            </div>
-          </div>
-          <h1 :class="['text-5xl font-extrabold tracking-tight mb-2 bg-clip-text text-transparent bg-gradient-to-r', theme === 'dark' ? 'from-white to-gray-400' : 'from-gray-900 to-gray-600']">
-            {{ t.appTitle }}
-          </h1>
-          <p :class="['text-lg font-medium', theme === 'dark' ? 'text-gray-400' : 'text-gray-500']">
-            {{ t.appSubtitle }}
-          </p>
-      </header>
-
-      <main>
-          <!-- Input Section -->
-          <div 
-            class="rounded-2xl p-8 backdrop-blur-xl shadow-2xl transition-all duration-500"
-            :class="[
-                theme === 'dark' ? 'bg-gray-800/40 border border-gray-700/50 shadow-black/20' : 'bg-white/60 border border-white/50 shadow-xl shadow-blue-100/20'
-            ]"
-          >
-             <label for="video-links" :class="['block text-lg font-medium mb-4', theme === 'dark' ? 'text-gray-200' : 'text-gray-700']">
-                 {{ t.inputLabel }}
-             </label>
-             <div class="relative">
-                <textarea
-                    id="video-links"
-                    v-model="linksInput"
-                    :placeholder="t.inputPlaceholder"
-                    :disabled="isProcessing"
-                    :class="['w-full h-40 p-4 rounded-xl border transition-all duration-200 resize-none font-mono text-sm focus:outline-none focus:ring-2 focus:ring-opacity-50', theme === 'dark' ? 'bg-gray-900/50 border-gray-700 focus:border-red-500/50 focus:ring-red-500 text-gray-200 placeholder-gray-600' : 'bg-white/50 border-gray-200 focus:border-blue-500/50 focus:ring-blue-500 text-gray-900 placeholder-gray-400']"
-                ></textarea>
-             </div>
-
-             <div class="flex justify-between items-start mt-3">
-                 <p class="text-xs text-gray-500">{{ t.enterUrlHint }}</p>
-                 <p :class="['text-xs', theme === 'dark' ? 'text-yellow-500/80' : 'text-yellow-600/80']">{{ t.publicVideoHint }}</p>
-             </div>
-
-             <!-- Summary Length -->
-             <div class="mt-8">
-                 <label :class="['block text-sm font-medium mb-3 text-center', theme === 'dark' ? 'text-gray-400' : 'text-gray-500']">
-                    {{ t.summaryLength }}
-                 </label>
-                 <div :class="['flex p-1 rounded-xl', theme === 'dark' ? 'bg-gray-900/30 border border-gray-700/50' : 'bg-gray-100/50 border border-gray-200/50']">
-                     <button
-                        v-for="length in ['short', 'medium', 'comprehensive']"
-                        :key="length"
-                        @click="summaryLength = length as SummaryLength"
-                        :disabled="isProcessing"
-                        :class="getSummaryLengthClass(length)"
-                     >
-                        {{ t.lengths[length as 'short' | 'medium' | 'comprehensive'] }}
-                     </button>
-                 </div>
-             </div>
-
-             <!-- Error -->
-             <div v-if="globalError" :class="['mt-6 p-4 rounded-xl border flex gap-3 items-start', theme === 'dark' ? 'bg-red-900/20 border-red-800/50 text-red-200' : 'bg-red-50 border-red-100 text-red-700']">
-                 <ExclamationCircleIcon class="w-5 h-5 flex-shrink-0 mt-0.5" />
-                 <span class="text-sm whitespace-pre-wrap">{{ globalError }}</span>
-             </div>
-
-             <!-- Buttons -->
-             <div class="mt-8">
-                 <button
-                    v-if="!isProcessing"
-                    @click="handleAnalysis"
-                    class="w-full py-4 px-6 flex items-center justify-center gap-3 rounded-xl font-bold text-white shadow-lg transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-                    :class="[theme === 'dark' ? 'bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 shadow-red-900/20' : 'bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 shadow-blue-200/50']"
-                 >
-                    <VideoIcon class="w-5 h-5" />
-                    {{ t.generateBtn }}
-                 </button>
-                 <button
-                    v-else
-                    @click="handleStop"
-                    class="w-full py-4 px-6 flex items-center justify-center gap-3 rounded-xl font-bold text-white shadow-lg transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-                    :class="[theme === 'dark' ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-800 hover:bg-gray-700']"
-                 >
-                    <SpinnerIcon class="w-5 h-5" />
-                    {{ t.stopBtn }}
-                 </button>
-             </div>
-          </div>
-
-          <!-- Results -->
-          <div v-if="videoAnalyses.length > 0" class="mt-8">
-              <div class="flex justify-between items-center mb-4">
-                  <h2 :class="['text-2xl font-semibold', theme === 'dark' ? 'text-gray-300' : 'text-gray-700']">Results</h2>
-                  <button
-                    v-if="!isProcessing"
-                    @click="handleClearAll"
-                    :class="['p-2 rounded-lg transition-colors duration-200 border', theme === 'dark' ? 'border-gray-600 text-gray-400 hover:bg-gray-700 hover:border-gray-500' : 'border-gray-300 text-gray-500 hover:bg-gray-100 hover:border-gray-400']"
-                    aria-label="Clear all results"
-                  >
-                    <TrashIcon class="w-5 h-5" />
-                  </button>
-              </div>
-
-              <div class="space-y-4">
-                  <div 
-                    v-for="analysis in videoAnalyses" 
-                    :key="analysis.id"
-                    :class="['rounded-lg p-4 border transition-all duration-300', theme === 'dark' ? 'bg-gray-800/50 border-gray-700' : 'bg-white border-gray-200 shadow-sm']"
-                  >
-                     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                         <div class="flex-1 min-w-0">
-                             <p :class="['text-sm truncate font-medium', theme === 'dark' ? 'text-gray-300' : 'text-gray-800']">
-                                 {{ analysis.title || analysis.url }}
-                             </p>
-                             <p class="text-xs text-gray-500 truncate">{{ analysis.title ? analysis.url : '' }}</p>
-                         </div>
-                         <div class="flex items-center gap-4 w-full sm:w-auto">
-                             <div class="w-36">
-                                 <!-- Status Indicator -->
-                                 <div v-if="analysis.status === AnalysisStatus.Processing" class="flex items-center gap-2 text-blue-500"><SpinnerIcon class="w-5 h-5" /> Processing...</div>
-                                 <div v-else-if="analysis.status === AnalysisStatus.Success" class="flex items-center gap-2 text-green-500"><CheckCircleIcon class="w-5 h-5" /> Success</div>
-                                 <div v-else-if="analysis.status === AnalysisStatus.Error" class="flex items-center gap-2 text-red-500"><ExclamationCircleIcon class="w-5 h-5" /> Error</div>
-                                 <div v-else :class="['flex items-center gap-2', theme === 'dark' ? 'text-gray-400' : 'text-gray-500']">Pending</div>
+                  <div class="space-y-5">
+                      <div 
+                        v-for="analysis in videoAnalyses" 
+                        :key="analysis.id"
+                        class="rounded-2xl p-6 border transition-all duration-500 group hover:shadow-md"
+                        :class="[theme === 'dark' ? 'bg-gray-800/40 border-gray-700/50 hover:bg-gray-800/80' : 'bg-white border-gray-100 shadow-sm hover:shadow-lg hover:border-brand-100']"
+                      >
+                         <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                             <div class="flex-1 min-w-0">
+                                 <h3 class="text-base font-bold truncate leading-tight mb-1" :class="[theme === 'dark' ? 'text-gray-200' : 'text-gray-900']">
+                                     {{ analysis.title || 'Processing Video...' }}
+                                 </h3>
+                                 <a 
+                                    :href="analysis.url" 
+                                    target="_blank" 
+                                    class="text-xs truncate font-mono transition-colors hover:underline flex items-center gap-1"
+                                    :class="[theme === 'dark' ? 'text-brand-400' : 'text-brand-600']"
+                                 >
+                                     {{ analysis.url }}
+                                     <span class="opacity-50">↗</span>
+                                 </a>
                              </div>
 
-                             <button
-                                v-if="analysis.status === AnalysisStatus.Error"
-                                @click="handleRetry(analysis.id)"
-                                :disabled="isProcessing"
-                                :class="['flex items-center justify-center gap-2 w-[140px] py-2 px-4 bg-yellow-600 hover:bg-yellow-700 rounded-md text-sm font-medium transition-colors disabled:cursor-not-allowed', theme === 'dark' ? 'disabled:bg-gray-800 disabled:text-gray-500' : 'disabled:bg-gray-200 disabled:text-gray-400']"
-                             >
-                                <RetryIcon class="w-4 h-4" />
-                                Retry Analysis
-                             </button>
+                             <div class="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end">
+                                 <!-- Status -->
+                                 <div class="px-3 py-1.5 rounded-full text-xs font-bold border flex items-center gap-2"
+                                    :class="[
+                                        analysis.status === AnalysisStatus.Processing ? 'bg-blue-500/10 text-blue-500 border-blue-500/20' :
+                                        analysis.status === AnalysisStatus.Success ? 'bg-green-500/10 text-green-500 border-green-500/20' :
+                                        analysis.status === AnalysisStatus.Error ? 'bg-red-500/10 text-red-500 border-red-500/20' :
+                                        'bg-gray-500/10 text-gray-500 border-gray-500/20'
+                                    ]"
+                                 >
+                                     <SpinnerIcon v-if="analysis.status === AnalysisStatus.Processing" class="w-3 h-3" />
+                                     <CheckCircleIcon v-else-if="analysis.status === AnalysisStatus.Success" class="w-3 h-3" />
+                                     <ExclamationCircleIcon v-else-if="analysis.status === AnalysisStatus.Error" class="w-3 h-3" />
+                                     <span>{{ analysis.status }}</span>
+                                 </div>
 
-                             <button
-                                v-else
-                                @click="triggerPdfGeneration(analysis.id, analysis.title!, analysis.summary!)"
-                                :disabled="analysis.status !== AnalysisStatus.Success || pdfGeneratingId === analysis.id"
-                                :class="['flex items-center justify-center gap-2 w-[140px] py-2 px-4 rounded-md text-sm font-medium transition-colors disabled:cursor-not-allowed', pdfGeneratingId === analysis.id ? (theme === 'dark' ? 'bg-gray-600 text-gray-400' : 'bg-gray-300 text-gray-500') : (theme === 'dark' ? 'bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:text-gray-500' : 'bg-gray-200 hover:bg-gray-300 disabled:bg-gray-100 disabled:text-gray-400')]"
-                             >
-                                <template v-if="pdfGeneratingId === analysis.id">
-                                    <SpinnerIcon class="w-4 h-4" /> Generating...
-                                </template>
-                                <template v-else>
-                                    <DownloadIcon class="w-4 h-4" /> Download PDF
-                                </template>
-                             </button>
+                                 <!-- Action Button -->
+                                 <button
+                                    v-if="analysis.status === AnalysisStatus.Error"
+                                    @click="handleRetry(analysis.id)"
+                                    :disabled="isProcessing"
+                                    class="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-all shadow-md active:scale-95 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                                 >
+                                    <RetryIcon class="w-4 h-4" />
+                                    Retry
+                                 </button>
+
+                                 <button
+                                    v-else
+                                    @click="triggerPdfGeneration(analysis.id, analysis.title!, analysis.summary!)"
+                                    :disabled="analysis.status !== AnalysisStatus.Success || pdfGeneratingId === analysis.id"
+                                    class="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed border"
+                                    :class="[
+                                        pdfGeneratingId === analysis.id 
+                                            ? (theme === 'dark' ? 'bg-gray-700 text-gray-400 border-gray-600' : 'bg-gray-100 text-gray-400 border-gray-200')
+                                            : (theme === 'dark' 
+                                                ? 'bg-gray-700 text-white border-gray-600 hover:bg-gray-600' 
+                                                : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50 hover:border-gray-300')
+                                    ]"
+                                 >
+                                    <template v-if="pdfGeneratingId === analysis.id">
+                                        <SpinnerIcon class="w-4 h-4" /> Generating...
+                                    </template>
+                                    <template v-else>
+                                        <DownloadIcon class="w-4 h-4" /> Download PDF
+                                    </template>
+                                 </button>
+                             </div>
                          </div>
-                     </div>
-                     <p v-if="analysis.status === AnalysisStatus.Error" :class="['mt-2 text-sm p-2 rounded-md', theme === 'dark' ? 'text-red-400 bg-red-900/30' : 'text-red-700 bg-red-100']">
-                         {{ analysis.error }}
-                     </p>
+                         
+                         <!-- Error Message -->
+                         <div v-if="analysis.status === AnalysisStatus.Error" class="mt-4 text-xs p-3 rounded-lg font-mono" :class="[theme === 'dark' ? 'bg-red-900/20 text-red-300 border border-red-900/30' : 'bg-red-50 text-red-600 border border-red-100']">
+                             > Error: {{ analysis.error }}
+                         </div>
+                      </div>
                   </div>
-              </div>
-          </div>
+            </div>
+        </Transition>
 
-      </main>
+    </main>
 
-      <ApiKeyModal 
-        :isOpen="isApiKeyModalOpen" 
-        :theme="theme" 
-        :initialKey="apiKey"
-        :selectedModel="selectedModel"
-        @close="isApiKeyModalOpen = false"
-        @save="handleSaveApiKey"
-        @modelChange="handleSaveModel"
-      />
+    <ApiKeyModal 
+      :isOpen="isApiKeyModalOpen" 
+      :theme="theme" 
+      :initialKey="apiKey"
+      :selectedModel="selectedModel"
+      @close="isApiKeyModalOpen = false"
+      @save="handleSaveApiKey"
+      @modelChange="handleSaveModel"
+    />
 
-      <InfoModal
-        :isOpen="isInfoModalOpen"
-        :theme="theme"
-        @close="isInfoModalOpen = false"
-      />
-
-    </div>
+    <InfoModal
+      :isOpen="isInfoModalOpen"
+      :theme="theme"
+      @close="isInfoModalOpen = false"
+    />
   </div>
 </template>
+
+<style>
+/* Custom Pulse for background blobs */
+@keyframes pulse-slow {
+  0%, 100% { transform: scale(1); opacity: 0.4; }
+  50% { transform: scale(1.1); opacity: 0.3; }
+}
+.animate-pulse-slow {
+  animation: pulse-slow 8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+</style>

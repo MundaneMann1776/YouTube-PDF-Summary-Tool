@@ -2,15 +2,66 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Main Application Styles */
+/* Fonts */
+@font-face {
+  font-family: 'Roboto';
+  src: url('/fonts/Roboto-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+@font-face {
+  font-family: 'Roboto';
+  src: url('/fonts/Roboto-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
 }
-.animate-fade-in {
-  animation: fadeIn 0.5s ease-in-out;
+
+@font-face {
+  font-family: 'Merriweather';
+  src: url('/fonts/Merriweather-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
 }
-.animate-fade-in-fast {
-  animation: fadeIn 0.2s ease-in-out;
+
+@font-face {
+  font-family: 'Merriweather';
+  src: url('/fonts/Merriweather-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Base Styles */
+body {
+  font-family: 'Roboto', sans-serif;
+  @apply antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Merriweather', serif;
+}
+
+/* Animations */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.list-enter-active,
+.list-leave-active {
+  transition: all 0.4s ease;
+}
+.list-enter-from,
+.list-leave-to {
+  opacity: 0;
+  transform: translateY(20px);
 }

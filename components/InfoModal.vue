@@ -12,7 +12,7 @@
       >
         <!-- Header -->
         <div :class="['p-6 text-center border-b', theme === 'dark' ? 'border-gray-800' : 'border-gray-100']">
-          <div class="mx-auto w-12 h-12 bg-gradient-to-br from-red-500 to-red-600 rounded-xl shadow-lg flex items-center justify-center mb-4">
+          <div class="mx-auto w-12 h-12 bg-gradient-to-br from-brand-500 to-brand-600 rounded-xl shadow-lg flex items-center justify-center mb-4">
             <VideoIcon class="w-6 h-6 text-white" />
           </div>
           <h2 :class="['text-2xl font-bold', theme === 'dark' ? 'text-white' : 'text-gray-900']">
@@ -32,7 +32,7 @@
             </h3>
             <div class="grid grid-cols-2 gap-3">
               <div v-for="(step, idx) in steps" :key="idx" :class="['p-3 rounded-xl border', theme === 'dark' ? 'bg-gray-800/50 border-gray-700/50' : 'bg-white/50 border-gray-200/50']">
-                <div class="text-xs font-bold text-red-500 mb-1">0{{ idx + 1 }}</div>
+                <div class="text-xs font-bold text-brand-500 mb-1">0{{ idx + 1 }}</div>
                 <div :class="['font-semibold text-sm mb-0.5', theme === 'dark' ? 'text-gray-200' : 'text-gray-900']">
                   {{ step.title }}
                 </div>
